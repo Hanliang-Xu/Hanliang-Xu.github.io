@@ -3,9 +3,12 @@ import React from 'react';
 function Awards() {
   return (
     <div>
-      <h2>Hey! I'm Hanliang Xu!</h2>
-      {"I'm a Sophomore at Vanderbilt majoring in Computer Science and Math"}
-      <p>Nice to meet you!</p>
+      <h2>College Scholars Program</h2>
+      <p>Selected as one of 60 students from 2000+ undergraduates to work closely with faculty through
+         seminars and research in a 4-year honors program</p>
+      <br />
+      <h2>Crescere Aude Scholarship</h2>
+      <p>Awarded $6,000 scholarship for outstanding academic achievements and contributions to research</p>
     </div>
   );
 }
