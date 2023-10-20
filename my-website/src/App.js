@@ -31,15 +31,14 @@ function App() {
             position="static"
             sx={{
               backgroundColor: theme.palette.primary.main,
-              height: '4rem'
+              height: '5rem'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', width: '100%', height: '100%' }}>
               <Tabs 
                 sx={{ 
-                  alignItems: 'center',
                   '& .MuiTab-root': {
-                    fontSize: '1.5 rem',
+                    fontSize: '2rem',
                     fontFamily: theme.typography.fontFamily,
                     minWidth: 'auto',
                     padding: '0 1rem',
