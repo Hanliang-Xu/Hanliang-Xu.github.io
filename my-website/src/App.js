@@ -53,8 +53,8 @@ function App() {
                 }}
               >
                 <Tab label="Home" component={Link} to="/" />
-                <Tab label="Projects" component={Link} to="/projects" />
                 <Tab label="Experience" component={Link} to="/experience" />
+                <Tab label="Projects" component={Link} to="/projects" />
                 <Tab label="Awards" component={Link} to="/awards" />
               </Tabs>
             </div>
