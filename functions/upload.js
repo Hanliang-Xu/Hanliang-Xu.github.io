@@ -4,10 +4,12 @@ const path = require('path');
 const Busboy = require('busboy');
 
 exports.handler = async (event, context) => {
+    console.log(event)
+
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
-            body: 'Method Not Allowed',
+            body: 'Method Not Allowedd',
         };
     }
 
@@ -22,6 +24,7 @@ exports.handler = async (event, context) => {
     const fileStream = fs.createWriteStream(filePath);
 
     return new Promise((resolve, reject) => {
+
         busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
             file.pipe(fileStream);
         });
