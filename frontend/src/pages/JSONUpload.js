@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Box, Button, Typography} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
@@ -14,13 +14,10 @@ function JSONUpload() {
         formData.append('json-file', file);
 
         try {
-            const response = await fetch('/.netlify/functions/upload', {
+            const response = await fetch('http://localhost:5001/upload', {
                 method: 'POST',
                 body: formData
             });
-
-            console.log("GOT HERE")
-            console.log(response)
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -40,7 +37,7 @@ function JSONUpload() {
     };
 
     const handleDownloadReport = (type) => {
-        window.location.href = `/.netlify/functions/download?type=${type}`;
+        window.location.href = `https://<your-heroku-app-name>.herokuapp.com/download?type=${type}`;
     };
 
     return (
@@ -63,10 +60,10 @@ function JSONUpload() {
                 type="file"
                 onChange={handleFileUpload}
                 accept=".json"
-                style={{margin: '20px 0'}}
+                style={{ margin: '20px 0' }}
             />
             {uploadError && (
-                <Box mt={2} sx={{color: 'red'}}>
+                <Box mt={2} sx={{ color: 'red' }}>
                     <Typography variant="h6">Upload Error:</Typography>
                     <pre>{uploadError}</pre>
                 </Box>
@@ -78,8 +75,7 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'darkred'}}>Major Error
-                        Report:</Typography>
+                    <Typography variant="h6" sx={{ color: 'darkred' }}>Major Error Report:</Typography>
                     <pre>{JSON.stringify(majorErrorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
                             onClick={() => handleDownloadReport('major_errors')}>
@@ -94,7 +90,7 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'red'}}>Error Report:</Typography>
+                    <Typography variant="h6" sx={{ color: 'red' }}>Error Report:</Typography>
                     <pre>{JSON.stringify(errorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
                             onClick={() => handleDownloadReport('errors')}>
@@ -109,7 +105,7 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#fff4e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'orange'}}>Warning Report:</Typography>
+                    <Typography variant="h6" sx={{ color: 'orange' }}>Warning Report:</Typography>
                     <pre>{JSON.stringify(warningReport, null, 2)}</pre>
                     <Button variant="contained" color="warning"
                             onClick={() => handleDownloadReport('warnings')}>
@@ -124,7 +120,7 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#e6f7ff'
                 }}>
-                    <Typography variant="h6" sx={{color: 'blue'}}>Generated Report:</Typography>
+                    <Typography variant="h6" sx={{ color: 'blue' }}>Generated Report:</Typography>
                     <pre>{report}</pre>
                     <Button variant="contained" color="primary"
                             onClick={() => handleDownloadReport('report')}>

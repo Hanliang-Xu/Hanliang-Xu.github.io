@@ -1,0 +1,2 @@
+PCASL [PASL] labeling
+a 3D [3D] EPI [PulseSequenceType] readout
