@@ -19,6 +19,9 @@ function JSONUpload() {
                 body: formData
             });
 
+            console.log("GOT HERE")
+            console.log(response)
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Server error: ${response.status} - ${errorText}`);
