@@ -1,79 +1,79 @@
 /* Experience.css */
 .img-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
 .img-container img {
-  width: 45%;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    width: 45%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
 .img-container p {
-  text-align: center;
-  font-style: italic;
-  color: #555;
+    text-align: center;
+    font-style: italic;
+    color: #555;
 }
 
 h2 {
-  font-size: 28px; /* Adjust according to your preference */
+    font-size: 28px; /* Adjust according to your preference */
 }
 
 p {
-  font-size: 16px; /* Adjust according to your preference */
+    font-size: 16px; /* Adjust according to your preference */
 }
 
 a {
-  font-size: 16px; /* Adjust according to your preference */
-  text-decoration: none;
-  color: #007BFF; /* You can change this to match your color scheme */
+    font-size: 16px; /* Adjust according to your preference */
+    text-decoration: none;
+    color: #007BFF; /* You can change this to match your color scheme */
 }
 
 a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 .img-container div {
-  text-align: center;
+    text-align: center;
 }
 
 .img-container img {
-  margin-bottom: 8px; /* Adds space between image and caption */
+    margin-bottom: 8px; /* Adds space between image and caption */
 }
 
 /* Experience.css */
 body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
 }
 
 .container {
-  width: 80%;
-  margin: 0 auto;
+    width: 80%;
+    margin: 0 auto;
 }
 
 h2 {
-  background-color: #f4f4f4;
-  text-align: center;
-  padding: 10px;
-  border-left: 5px solid #007BFF; /* Adjust color as needed */
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 10px;
+    border-left: 5px solid #007BFF; /* Adjust color as needed */
 }
 
 .experience-item {
-  border: 2px solid #007BFF; /* Adjust color as needed */
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  background-color: #f9f9f9;
+    border: 2px solid #007BFF; /* Adjust color as needed */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
 }
 
 .img-container {
-  border: 1px solid #e1e1e1;
-  border-radius: 10px;
-  padding: 10px;
-  background-color: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #fff;
 }

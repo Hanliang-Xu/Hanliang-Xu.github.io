@@ -1,0 +1,20 @@
+{
+    "ArterialSpinLabelingType": "PASLdfed",
+    "MRAcquisitionType": "3D",
+    "PulseSequenceType": "3Dgrase",
+    "BackgroundSuppression": true,
+    "M0Type": "Separate",
+    "TotalAcquiredPairs": 10,
+    "AcquisitionVoxelSize": [
+        8,
+        4,
+        6
+    ],
+    "BackgroundSuppressionNumberPulses": 2,
+    "BackgroundSuppressionPulseTime": [
+        0.15,
+        0.2
+    ],
+    "LabelingLocationDescription": "Labeling slab parallel to the imaging volume with a 2cm gap",
+    "LabelingDistance": 10
+}
