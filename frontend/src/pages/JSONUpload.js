@@ -78,8 +78,8 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'darkred'}}>Major Error
-                        Report:</Typography>
+                    <Typography variant="h6" sx={{color: 'darkred'}}>MAJOR ERRORS (you cannot report
+                        a sequence protocol without these):</Typography>
                     <pre>{JSON.stringify(majorErrorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
                             onClick={() => handleDownloadReport('major_errors')}>
@@ -94,7 +94,8 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'red'}}>Error Report:</Typography>
+                    <Typography variant="h6" sx={{color: 'red'}}>ERRORS (these are major
+                        shortcomings, you need to provide those):</Typography>
                     <pre>{JSON.stringify(errorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
                             onClick={() => handleDownloadReport('errors')}>
@@ -109,7 +110,7 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#fff4e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'orange'}}>Warning Report:</Typography>
+                    <Typography variant="h6" sx={{color: 'orange'}}>WARNINGS:</Typography>
                     <pre>{JSON.stringify(warningReport, null, 2)}</pre>
                     <Button variant="contained" color="warning"
                             onClick={() => handleDownloadReport('warnings')}>
