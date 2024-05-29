@@ -4,6 +4,7 @@ setup(
   name='ASL-parameters-generator',
   version='1.0.0',
   packages=find_packages(),  # Automatically find packages in your project
+  py_modules=['backend.json_validation', 'backend.validator'],  # Include your modules here
   install_requires=[
     'blinker==1.8.2',
     'click==8.1.7',

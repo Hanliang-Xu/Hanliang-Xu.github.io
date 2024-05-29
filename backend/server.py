@@ -2,8 +2,8 @@ import json
 import os
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from json_validation import JSONValidator
-from validator import *
+from backend.json_validation import JSONValidator
+from backend.validator import *
 
 app = Flask(__name__)
 CORS(app)
