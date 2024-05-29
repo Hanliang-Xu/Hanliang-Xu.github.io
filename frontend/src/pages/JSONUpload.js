@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
 
-const API_BASE_URL = 'https://<your-heroku-app-name>.herokuapp.com';
+const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com';
 
 
 function JSONUpload() {
