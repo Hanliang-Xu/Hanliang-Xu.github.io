@@ -207,6 +207,11 @@ def generate_report(values):
     voxel_size_1_2 = 'N/A'
     voxel_size_3 = 'N/A'
 
+  # Debugging: print the values of echo_time, repetition_time, and flip_angle to see if they are being accessed correctly
+  print("EchoTime:", echo_time)
+  print("RepetitionTimePreparation:", repetition_time)
+  print("FlipAngle:", flip_angle)
+
   labeling_duration = values.get('LabelingDuration', 'N/A')
   inversion_time = values.get('InversionTime', 'N/A')
   bolus_cutoff_flag = values.get('BolusCutOffFlag', 'N/A')
