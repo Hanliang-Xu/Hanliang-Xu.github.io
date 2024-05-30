@@ -4,8 +4,8 @@ import os
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from backend.json_validation import JSONValidator
-from backend.validator import *
+from json_validation import JSONValidator
+from validator import *
 
 app = Flask(__name__)
 CORS(app)
@@ -161,23 +161,126 @@ def validate_json(data):
 
 
 def generate_report(values):
+  global pld
   report_lines = []
 
+  # Check and process PostLabelingDelay
   if 'PostLabelingDelay' in values:
     pld = values['PostLabelingDelay']
-    if isinstance(pld, list) and len(set(pld)) == 1:
-      pld = pld[0]
-    report_lines.append(f"REQ: ASL was acquired with single-PLD [{pld}]")
+    if isinstance(pld, list):
+      if len(set(pld)) == 1:
+        pld_text = f"single-PLD [{pld[0]}]"
+        pld_value = pld[0]
+      else:
+        pld_text = f"multi-PLD [{', '.join(map(str, pld))}]"
+        pld_value = ', '.join(map(str, pld))
+    else:
+      pld_text = f"single-PLD [{pld}]"
+      pld_value = pld
+  else:
+    pld_text = "missing-PLD"
+    pld_value = 'N/A'
 
-  if 'ArterialSpinLabelingType' in values:
-    report_lines.append(f"PCASL [{values['ArterialSpinLabelingType']}] labeling")
+  # Additional parameters
+  asl_type = values.get('ArterialSpinLabelingType', 'N/A')
+  mr_acq_type = values.get('MRAcquisitionType', 'N/A')
+  pulse_seq_type = values.get('PulseSequenceType', 'N/A')
+  echo_time = values.get('EchoTime', 'N/A')
+  repetition_time = values.get('RepetitionTimePreparation', 'N/A')
+  flip_angle = values.get('FlipAngle', 'N/A')
+  voxel_size_0 = values.get('AcquisitionVoxelSize', 'N/A')[0]
+  voxel_size_1 = values.get('AcquisitionVoxelSize', 'N/A')[1]
+  voxel_size_2 = values.get('AcquisitionVoxelSize', 'N/A')[2]
+  labeling_duration = values.get('LabelingDuration', 'N/A')
+  inversion_time = values.get('InversionTime', 'N/A')
+  bolus_cutoff_flag = values.get('BolusCutOffFlag', 'N/A')
+  bolus_cutoff_technique = values.get('BolusCutOffTechnique', 'N/A')
+  bolus_cutoff_delay_time = values.get('BolusCutOffDelayTime', 'N/A')
+  background_suppression = values.get('BackgroundSuppression', 'N/A')
+  background_suppression_number_pulses = values.get('BackgroundSuppressionNumberPulses', 'N/A')
+  background_suppression_pulse_time = values.get('BackgroundSuppressionPulseTime', 'N/A')
+  total_acquired_pairs = values.get('TotalAcquiredPairs', 'N/A')
+  acquisition_duration = values.get('AcquisitionDuration', 'N/A')
 
-  if 'MRAcquisitionType' in values:
+  # Convert acquisition duration from seconds to minutes and seconds
+  if isinstance(acquisition_duration, (int, float)):
+    minutes = int(acquisition_duration // 60)
+    seconds = int(acquisition_duration % 60)
+    acquisition_duration_str = f"{minutes}:{seconds:02d}min"
+  else:
+    acquisition_duration_str = 'N/A'
+
+  # Creating the report lines
+  report_lines.append(
+    f"REQ: ASL was acquired with {pld_text} [{asl_type}] labeling and a "
+    f"[{mr_acq_type}] [{pulse_seq_type}] readout with the following parameters:"
+  )
+  report_lines.append(
+    f"REQ: TE {echo_time} ms, TR {repetition_time} ms, flip angle {flip_angle} degrees"
+  )
+  report_lines.append(
+    f"REQ: in-plane resolution {voxel_size_0}*{voxel_size_1} mm2,"
+  )
+  report_lines.append(
+    f"REQ: (TODO: number of slices) slices with {voxel_size_2} mm thickness,"
+  )
+
+  # Additional lines for PCASL
+  if asl_type == 'PCASL':
     report_lines.append(
-      f"a {values['MRAcquisitionType']} [{values['MRAcquisitionType']}] EPI [PulseSequenceType] readout")
+      f"REQ-PCASL: labeling duration {labeling_duration} ms,"
+    )
+    report_lines.append(
+      f"REQ-PCASL: PLD {pld_value} ms,"
+    )
 
-  report = "\n".join(report_lines)
-  return report
+  # Additional lines for PASL
+  if asl_type.upper() == 'PASL':
+    report_lines.append(
+      f"REQ-PASL: inversion time {inversion_time} ms,"
+    )
+    if bolus_cutoff_flag is not None:
+      if bolus_cutoff_flag:
+        report_lines.append(
+          f"REQ-PASL: with bolus saturation"
+        )
+        report_lines.append(
+          f"REC-PASL: using {bolus_cutoff_technique} pulse"
+        )
+        report_lines.append(
+          f"REC-PASL: applied at {bolus_cutoff_delay_time} ms after the labeling,"
+        )
+      else:
+        report_lines.append(
+          f"REQ-PASL: without bolus saturation"
+        )
+
+  # Additional lines for Background Suppression
+  if background_suppression is not None:
+    if background_suppression:
+      report_lines.append(
+        f"REQ: with background suppression"
+      )
+      report_lines.append(
+        f"REC: with {background_suppression_number_pulses} pulses"
+      )
+      report_lines.append(
+        f"REC: at {background_suppression_pulse_time} ms after the start of labeling."
+      )
+    else:
+      report_lines.append(
+        f"REQ: without background suppression"
+      )
+
+  # Additional lines for total pairs and acquisition duration
+  report_lines.append(
+    f"REQ: In total, {total_acquired_pairs} control-label pairs were acquired"
+  )
+  report_lines.append(
+    f"REC: in a {acquisition_duration_str} time."
+  )
+
+  return report_lines
 
 
 if __name__ == '__main__':
