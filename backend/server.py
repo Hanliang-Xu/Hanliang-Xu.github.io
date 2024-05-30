@@ -200,8 +200,8 @@ def generate_report(values):
           if i > 0 and i % 10 == 0:
             pld_value += "\n"
           pld_value += f"{val}, "
-        pld_value += "]"
         pld_value = pld_value.rstrip(", ")
+        pld_value += "]"
     else:
       pld_text = f"single-PLD"
       pld_value = convert_to_milliseconds(pld)
