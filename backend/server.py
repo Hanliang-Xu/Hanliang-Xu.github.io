@@ -171,10 +171,11 @@ def validate_json(data):
 def convert_to_milliseconds(value):
   """Utility function to convert seconds to milliseconds and round close values to integers."""
 
-  def round_if_close(val):
+  def round_if_close(val, decimal_places=3):
+    rounded_val = round(val, decimal_places)
     if abs(val - round(val)) < 1e-6:
       return round(val)
-    return val
+    return rounded_val
 
   if isinstance(value, (int, float)):
     return round_if_close(value * SECOND_TO_MILLISECOND)
