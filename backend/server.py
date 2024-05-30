@@ -15,6 +15,7 @@ MAJOR_ERROR_REPORT = 'major_error_report.json'
 ERROR_REPORT = 'error_report.json'
 WARNING_REPORT = 'warning_report.json'
 FINAL_REPORT = 'report.txt'
+SECOND_TO_MILLISECOND = 1000
 
 if not os.path.exists(UPLOAD_FOLDER):
   os.makedirs(UPLOAD_FOLDER)
@@ -106,7 +107,10 @@ def validate_json(data):
     "PostLabelingDelay": NumberOrNumberArrayValidator(),
     "InversionTime": NumberValidator(min_error=0),
     "BolusCutOffTechnique": StringValidator(),
-    "BolusCutOffDelayTime": NumberOrNumberArrayValidator()
+    "BolusCutOffDelayTime": NumberOrNumberArrayValidator(),
+    "EchoTime": NumberValidator(),
+    "RepetitionTimePreparation": NumberOrNumberArrayValidator(),
+    "FlipAngle": NumberValidator(min_error=0, max_error_include=360)
   }
   required_condition_schema = {
     "BackgroundSuppression": "all",
@@ -117,7 +121,10 @@ def validate_json(data):
     "PostLabelingDelay": {"ArterialSpinLabelingType": ["PCASL", "CASL"]},
     "InversionTime": {"ArterialSpinLabelingType": "PASL"},
     "BolusCutOffTechnique": {"ArterialSpinLabelingType": "PASL"},
-    "BolusCutOffDelayTime": {"ArterialSpinLabelingType": "PASL"}
+    "BolusCutOffDelayTime": {"ArterialSpinLabelingType": "PASL"},
+    "EchoTime": "all",
+    "RepetitionTimePreparation": "all",
+    "FlipAngle": "all"
   }
   recommended_validator_schema = {
     "BackgroundSuppressionNumberPulses": NumberValidator(min_error_include=0),
@@ -161,6 +168,15 @@ def validate_json(data):
   return major_errors, errors, warnings, values
 
 
+def convert_to_milliseconds(value):
+  """Utility function to convert seconds to milliseconds."""
+  if isinstance(value, (int, float)):
+    return value * SECOND_TO_MILLISECOND
+  elif isinstance(value, list):
+    return [v * SECOND_TO_MILLISECOND for v in value]
+  return value
+
+
 def generate_report(values):
   report_lines = []
 
@@ -169,23 +185,19 @@ def generate_report(values):
     pld = values['PostLabelingDelay']
     if isinstance(pld, list):
       if len(set(pld)) == 1:
-        pld_text = f"single-PLD [{pld[0]}]"
-        pld_value = pld[0]
+        pld_text = f"single-PLD"
+        pld_value = convert_to_milliseconds(pld[0])
       else:
-        # Split long lists into multiple lines
-        pld_text = "multi-PLD [\n"
+        pld_text = "multi-PLD"
         pld_value = ""
-        for i, val in enumerate(pld):
+        for i, val in enumerate(convert_to_milliseconds(pld)):
           if i > 0 and i % 10 == 0:
-            pld_text += "\n"
             pld_value += "\n"
-          pld_text += f"{val}, "
           pld_value += f"{val}, "
-        pld_text = pld_text.rstrip(", ") + "\n]"
         pld_value = pld_value.rstrip(", ")
     else:
-      pld_text = f"single-PLD [{pld}]"
-      pld_value = pld
+      pld_text = f"single-PLD"
+      pld_value = convert_to_milliseconds(pld)
   else:
     pld_text = "missing-PLD"
     pld_value = 'N/A'
@@ -212,14 +224,15 @@ def generate_report(values):
   print("RepetitionTimePreparation:", repetition_time)
   print("FlipAngle:", flip_angle)
 
-  labeling_duration = values.get('LabelingDuration', 'N/A')
-  inversion_time = values.get('InversionTime', 'N/A')
+  labeling_duration = convert_to_milliseconds(values.get('LabelingDuration', 'N/A'))
+  inversion_time = convert_to_milliseconds(values.get('InversionTime', 'N/A'))
   bolus_cutoff_flag = values.get('BolusCutOffFlag', 'N/A')
   bolus_cutoff_technique = values.get('BolusCutOffTechnique', 'N/A')
-  bolus_cutoff_delay_time = values.get('BolusCutOffDelayTime', 'N/A')
+  bolus_cutoff_delay_time = convert_to_milliseconds(values.get('BolusCutOffDelayTime', 'N/A'))
   background_suppression = values.get('BackgroundSuppression', 'N/A')
   background_suppression_number_pulses = values.get('BackgroundSuppressionNumberPulses', 'N/A')
-  background_suppression_pulse_time = values.get('BackgroundSuppressionPulseTime', 'N/A')
+  background_suppression_pulse_time = convert_to_milliseconds(
+    values.get('BackgroundSuppressionPulseTime', 'N/A'))
   total_acquired_pairs = values.get('TotalAcquiredPairs', 'N/A')
   acquisition_duration = values.get('AcquisitionDuration', 'N/A')
 
@@ -239,13 +252,8 @@ def generate_report(values):
   report_lines.append("")
 
   report_lines.append(
-    f"REQ: TE {echo_time} ms"
-  )
-  report_lines.append(
-    f"REQ: TR {repetition_time} ms"
-  )
-  report_lines.append(
-    f"REQ: flip angle {flip_angle} degrees"
+    f"REQ: TE {echo_time} ms, TR {repetition_time} ms,"
+    f" flip angle {flip_angle} degrees,"
   )
   report_lines.append(
     f"REQ: in-plane resolution {voxel_size_1_2} mm2,"
@@ -279,7 +287,8 @@ def generate_report(values):
           f"REC-PASL: using {bolus_cutoff_technique} pulse"
         )
         report_lines.append(
-          f"REC-PASL: applied at {bolus_cutoff_delay_time} ms after the labeling,"
+          f"REC-PASL: applied at {bolus_cutoff_delay_time}"
+          f" ms after the labeling,"
         )
       else:
         report_lines.append(
