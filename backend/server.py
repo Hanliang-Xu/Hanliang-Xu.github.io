@@ -174,14 +174,17 @@ def generate_report(values):
       else:
         # Split long lists into multiple lines
         pld_text = "multi-PLD [\n"
+        pld_value = ""
         for i, val in enumerate(pld):
           if i > 0 and i % 10 == 0:
             pld_text += "\n"
+            pld_value += "\n"
           pld_text += f"{val}, "
+          pld_value += f"{val}, "
         pld_text = pld_text.rstrip(", ") + "\n]"
-        pld_value = ', '.join(map(str, pld))
+        pld_value = pld_value.rstrip(", ")
     else:
-      pld_text = f"single-PLD {pld}"
+      pld_text = f"single-PLD [{pld}]"
       pld_value = pld
   else:
     pld_text = "missing-PLD"
@@ -231,7 +234,13 @@ def generate_report(values):
   report_lines.append("")
 
   report_lines.append(
-    f"REQ: TE {echo_time} ms, TR {repetition_time} ms, flip angle {flip_angle} degrees"
+    f"REQ: TE {echo_time} ms"
+  )
+  report_lines.append(
+    f"REQ: TR {repetition_time} ms"
+  )
+  report_lines.append(
+    f"REQ: flip angle {flip_angle} degrees"
   )
   report_lines.append(
     f"REQ: in-plane resolution {voxel_size_1_2} mm2,"
