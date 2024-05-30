@@ -172,10 +172,16 @@ def generate_report(values):
         pld_text = f"single-PLD [{pld[0]}]"
         pld_value = pld[0]
       else:
-        pld_text = f"multi-PLD [{', '.join(map(str, pld))}]"
+        # Split long lists into multiple lines
+        pld_text = "multi-PLD [\n"
+        for i, val in enumerate(pld):
+          if i > 0 and i % 10 == 0:
+            pld_text += "\n"
+          pld_text += f"{val}, "
+        pld_text = pld_text.rstrip(", ") + "\n]"
         pld_value = ', '.join(map(str, pld))
     else:
-      pld_text = f"single-PLD [{pld}]"
+      pld_text = f"single-PLD {pld}"
       pld_value = pld
   else:
     pld_text = "missing-PLD"
@@ -219,8 +225,8 @@ def generate_report(values):
 
   # Creating the report lines
   report_lines.append(
-    f"REQ: ASL was acquired with {pld_text} [{asl_type}] labeling and a "
-    f"[{mr_acq_type}] [{pulse_seq_type}] readout with the following parameters:"
+    f"REQ: ASL was acquired with {pld_text} {asl_type} labeling and a "
+    f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
   )
   report_lines.append("")
 
