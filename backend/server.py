@@ -169,11 +169,17 @@ def validate_json(data):
 
 
 def convert_to_milliseconds(value):
-  """Utility function to convert seconds to milliseconds."""
+  """Utility function to convert seconds to milliseconds and round close values to integers."""
+
+  def round_if_close(val):
+    if abs(val - round(val)) < 1e-6:
+      return round(val)
+    return val
+
   if isinstance(value, (int, float)):
-    return value * SECOND_TO_MILLISECOND
+    return round_if_close(value * SECOND_TO_MILLISECOND)
   elif isinstance(value, list):
-    return [v * SECOND_TO_MILLISECOND for v in value]
+    return [round_if_close(v * SECOND_TO_MILLISECOND) for v in value]
   return value
 
 
@@ -189,11 +195,12 @@ def generate_report(values):
         pld_value = convert_to_milliseconds(pld[0])
       else:
         pld_text = "multi-PLD"
-        pld_value = ""
+        pld_value = "["
         for i, val in enumerate(convert_to_milliseconds(pld)):
           if i > 0 and i % 10 == 0:
             pld_value += "\n"
           pld_value += f"{val}, "
+        pld_value += "]"
         pld_value = pld_value.rstrip(", ")
     else:
       pld_text = f"single-PLD"
@@ -206,8 +213,8 @@ def generate_report(values):
   asl_type = values.get('ArterialSpinLabelingType', 'N/A')
   mr_acq_type = values.get('MRAcquisitionType', 'N/A')
   pulse_seq_type = values.get('PulseSequenceType', 'N/A')
-  echo_time = values.get('EchoTime', 'N/A')
-  repetition_time = values.get('RepetitionTimePreparation', 'N/A')
+  echo_time = convert_to_milliseconds(values.get('EchoTime', 'N/A'))
+  repetition_time = convert_to_milliseconds(values.get('RepetitionTimePreparation', 'N/A'))
   flip_angle = values.get('FlipAngle', 'N/A')
 
   # Extract voxel sizes safely
@@ -218,11 +225,6 @@ def generate_report(values):
   else:
     voxel_size_1_2 = 'N/A'
     voxel_size_3 = 'N/A'
-
-  # Debugging: print the values of echo_time, repetition_time, and flip_angle to see if they are being accessed correctly
-  print("EchoTime:", echo_time)
-  print("RepetitionTimePreparation:", repetition_time)
-  print("FlipAngle:", flip_angle)
 
   labeling_duration = convert_to_milliseconds(values.get('LabelingDuration', 'N/A'))
   inversion_time = convert_to_milliseconds(values.get('InversionTime', 'N/A'))
