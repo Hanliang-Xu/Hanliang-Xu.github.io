@@ -47,16 +47,17 @@ def upload_file():
 
     if not major_errors:
       report = generate_report(values)
-      with open(FINAL_REPORT, 'w') as file:
-        file.write(report)
+
+      # Convert the list to a single string
+      report_str = "\n".join(report)
     else:
-      report = "Major errors found, cannot generate report."
+      report_str = "Major errors found, cannot generate report."
 
     return jsonify({
       "major_errors": major_errors,
       "errors": errors,
       "warnings": warnings,
-      "report": report
+      "report": report_str
     }), 200
   return jsonify({"error": "Invalid file type"}), 400
 
@@ -161,7 +162,6 @@ def validate_json(data):
 
 
 def generate_report(values):
-  global pld
   report_lines = []
 
   # Check and process PostLabelingDelay
@@ -188,9 +188,16 @@ def generate_report(values):
   echo_time = values.get('EchoTime', 'N/A')
   repetition_time = values.get('RepetitionTimePreparation', 'N/A')
   flip_angle = values.get('FlipAngle', 'N/A')
-  voxel_size_0 = values.get('AcquisitionVoxelSize', 'N/A')[0]
-  voxel_size_1 = values.get('AcquisitionVoxelSize', 'N/A')[1]
-  voxel_size_2 = values.get('AcquisitionVoxelSize', 'N/A')[2]
+
+  # Extract voxel sizes safely
+  acquisition_voxel_size = values.get('AcquisitionVoxelSize', ['N/A', 'N/A', 'N/A'])
+  if isinstance(acquisition_voxel_size, list) and len(acquisition_voxel_size) >= 3:
+    voxel_size_1_2 = f"{acquisition_voxel_size[0]}x{acquisition_voxel_size[1]}"
+    voxel_size_3 = acquisition_voxel_size[2]
+  else:
+    voxel_size_1_2 = 'N/A'
+    voxel_size_3 = 'N/A'
+
   labeling_duration = values.get('LabelingDuration', 'N/A')
   inversion_time = values.get('InversionTime', 'N/A')
   bolus_cutoff_flag = values.get('BolusCutOffFlag', 'N/A')
@@ -215,18 +222,21 @@ def generate_report(values):
     f"REQ: ASL was acquired with {pld_text} [{asl_type}] labeling and a "
     f"[{mr_acq_type}] [{pulse_seq_type}] readout with the following parameters:"
   )
+  report_lines.append("")
+
   report_lines.append(
     f"REQ: TE {echo_time} ms, TR {repetition_time} ms, flip angle {flip_angle} degrees"
   )
   report_lines.append(
-    f"REQ: in-plane resolution {voxel_size_0}*{voxel_size_1} mm2,"
+    f"REQ: in-plane resolution {voxel_size_1_2} mm2,"
   )
   report_lines.append(
-    f"REQ: (TODO: number of slices) slices with {voxel_size_2} mm thickness,"
+    f"REQ: (TODO: number of slices) slices with {voxel_size_3} mm thickness,"
   )
 
   # Additional lines for PCASL
   if asl_type == 'PCASL':
+    report_lines.append("")
     report_lines.append(
       f"REQ-PCASL: labeling duration {labeling_duration} ms,"
     )
@@ -236,6 +246,7 @@ def generate_report(values):
 
   # Additional lines for PASL
   if asl_type.upper() == 'PASL':
+    report_lines.append("")
     report_lines.append(
       f"REQ-PASL: inversion time {inversion_time} ms,"
     )
@@ -255,6 +266,7 @@ def generate_report(values):
           f"REQ-PASL: without bolus saturation"
         )
 
+  report_lines.append("")
   # Additional lines for Background Suppression
   if background_suppression is not None:
     if background_suppression:
@@ -272,6 +284,7 @@ def generate_report(values):
         f"REQ: without background suppression"
       )
 
+  report_lines.append("")
   # Additional lines for total pairs and acquisition duration
   report_lines.append(
     f"REQ: In total, {total_acquired_pairs} control-label pairs were acquired"
