@@ -28,41 +28,52 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-  if 'json-files' not in request.files:
+  if 'json-files' not in request.files or 'filenames' not in request.form:
     return jsonify({"error": "No file part"}), 400
 
   files = request.files.getlist('json-files')
-  if not files:
-    return jsonify({"error": "No selected files"}), 400
+  filenames = request.form.getlist('filenames')
+  if not files or not filenames:
+    return jsonify({"error": "No selected files or filenames"}), 400
 
   major_errors = {}
   errors = {}
   warnings = {}
   values = {}
+  labeling_types = {}
 
-  for file in files:
+  for file, filename in zip(files, filenames):
     if file.filename == '' or not file.filename.endswith('.json'):
       return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
     file.save(filepath)
     data, error = read_json(filepath)
     if error:
-      return jsonify({"error": error}), 400
+      return jsonify({"error": error, "filename": filename}), 400
 
     file_major_errors, file_errors, file_warnings, file_values = validate_json(data)
 
-    major_errors.update(file_major_errors)
-    errors.update(file_errors)
-    warnings.update(file_warnings)
-    values.update(file_values)
+    major_errors[filename] = file_major_errors
+    errors[filename] = file_errors
+    warnings[filename] = file_warnings
+    values[filename] = file_values
+
+    if 'ArterialSpinLabelingType' in file_values:
+      labeling_types[filename] = file_values['ArterialSpinLabelingType']
+
+  # Check for consistency in ArterialSpinLabelingType
+  if len(set(labeling_types.values())) > 1:
+    inconsistent_files = {fname: ltype for fname, ltype in labeling_types.items()}
+    return jsonify({"error": "Inconsistent ArterialSpinLabelingType across sessions",
+                    "inconsistent_files": inconsistent_files}), 400
 
   save_json(major_errors, MAJOR_ERROR_REPORT)
   save_json(errors, ERROR_REPORT)
   save_json(warnings, WARNING_REPORT)
 
-  if not major_errors:
+  if not any(major_errors.values()):
     report = generate_report(values)
 
     # Convert the list to a single string

@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Box, Button, Typography} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 
 const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com';
 
@@ -19,11 +19,9 @@ function JSONUpload() {
             for (const item of items) {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
-                console.log(pathParts)
 
                 // Check if the file is directly in the perf folder and ends with "asl.json"
                 if (pathParts.length === 5 && pathParts[pathParts.length - 2] === 'perf' && item.name.endsWith('asl.json')) {
-                    console.log("I GOT HERE")
                     jsonFiles.push(item);
                 }
             }
@@ -37,7 +35,10 @@ function JSONUpload() {
         }
 
         const formData = new FormData();
-        jsonFiles.forEach(file => formData.append('json-files', file));
+        jsonFiles.forEach(file => {
+            formData.append('json-files', file);
+            formData.append('filenames', file.name); // Add filenames to the form data
+        });
 
         try {
             const response = await fetch(`${API_BASE_URL}/upload`, {
@@ -86,10 +87,10 @@ function JSONUpload() {
                 type="file"
                 webkitdirectory="true"
                 onChange={handleDirectoryUpload}
-                style={{margin: '20px 0'}}
+                style={{ margin: '20px 0' }}
             />
             {uploadError && (
-                <Box mt={2} sx={{color: 'red'}}>
+                <Box mt={2} sx={{ color: 'red' }}>
                     <Typography variant="h6">Upload Error:</Typography>
                     <pre>{uploadError}</pre>
                 </Box>
@@ -101,11 +102,11 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'darkred'}}>MAJOR ERRORS (you cannot report
+                    <Typography variant="h6" sx={{ color: 'darkred' }}>MAJOR ERRORS (you cannot report
                         a sequence protocol without these):</Typography>
                     <pre>{JSON.stringify(majorErrorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
-                            onClick={() => handleDownloadReport('major_errors')}>
+                        onClick={() => handleDownloadReport('major_errors')}>
                         Download Major Error Report
                     </Button>
                 </Box>
@@ -117,11 +118,11 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#ffe6e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'red'}}>ERRORS (these are major
+                    <Typography variant="h6" sx={{ color: 'red' }}>ERRORS (these are major
                         shortcomings, you need to provide those):</Typography>
                     <pre>{JSON.stringify(errorReport, null, 2)}</pre>
                     <Button variant="contained" color="error"
-                            onClick={() => handleDownloadReport('errors')}>
+                        onClick={() => handleDownloadReport('errors')}>
                         Download Error Report
                     </Button>
                 </Box>
@@ -133,10 +134,10 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#fff4e6'
                 }}>
-                    <Typography variant="h6" sx={{color: 'orange'}}>WARNINGS:</Typography>
+                    <Typography variant="h6" sx={{ color: 'orange' }}>WARNINGS:</Typography>
                     <pre>{JSON.stringify(warningReport, null, 2)}</pre>
                     <Button variant="contained" color="warning"
-                            onClick={() => handleDownloadReport('warnings')}>
+                        onClick={() => handleDownloadReport('warnings')}>
                         Download Warning Report
                     </Button>
                 </Box>
@@ -148,10 +149,10 @@ function JSONUpload() {
                     borderRadius: '8px',
                     backgroundColor: '#e6f7ff'
                 }}>
-                    <Typography variant="h6" sx={{color: 'blue'}}>Generated Report:</Typography>
+                    <Typography variant="h6" sx={{ color: 'blue' }}>Generated Report:</Typography>
                     <pre>{report}</pre>
                     <Button variant="contained" color="primary"
-                            onClick={() => handleDownloadReport('report')}>
+                        onClick={() => handleDownloadReport('report')}>
                         Download Generated Report
                     </Button>
                 </Box>
