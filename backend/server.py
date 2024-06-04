@@ -45,6 +45,7 @@ def upload_files():
       return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
     data, error = read_json(filepath)
     if error:

@@ -19,9 +19,11 @@ function JSONUpload() {
             for (const item of items) {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
+                console.log(pathParts)
 
                 // Check if the file is directly in the perf folder and ends with "asl.json"
-                if (pathParts.length === 4 && pathParts[pathParts.length - 3] === 'perf' && item.name.endsWith('asl.json')) {
+                if (pathParts.length === 5 && pathParts[pathParts.length - 2] === 'perf' && item.name.endsWith('asl.json')) {
+                    console.log("I GOT HERE")
                     jsonFiles.push(item);
                 }
             }
