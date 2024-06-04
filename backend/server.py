@@ -27,40 +27,56 @@ def home():
 
 
 @app.route('/upload', methods=['POST'])
-def upload_file():
-  if 'json-file' not in request.files:
+def upload_files():
+  if 'json-files' not in request.files:
     return jsonify({"error": "No file part"}), 400
-  file = request.files['json-file']
-  if file.filename == '':
-    return jsonify({"error": "No selected file"}), 400
-  if file and file.filename.endswith('.json'):
+
+  files = request.files.getlist('json-files')
+  if not files:
+    return jsonify({"error": "No selected files"}), 400
+
+  major_errors = {}
+  errors = {}
+  warnings = {}
+  values = {}
+
+  for file in files:
+    if file.filename == '' or not file.filename.endswith('.json'):
+      return jsonify({"error": f"Invalid file: {file.filename}"}), 400
+
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
     data, error = read_json(filepath)
     if error:
       return jsonify({"error": error}), 400
 
-    major_errors, errors, warnings, values = validate_json(data)
+    file_major_errors, file_errors, file_warnings, file_values = validate_json(data)
 
-    save_json(major_errors, MAJOR_ERROR_REPORT)
-    save_json(errors, ERROR_REPORT)
-    save_json(warnings, WARNING_REPORT)
+    major_errors.update(file_major_errors)
+    errors.update(file_errors)
+    warnings.update(file_warnings)
+    values.update(file_values)
 
-    if not major_errors:
-      report = generate_report(values)
+  save_json(major_errors, MAJOR_ERROR_REPORT)
+  save_json(errors, ERROR_REPORT)
+  save_json(warnings, WARNING_REPORT)
 
-      # Convert the list to a single string
-      report_str = "\n".join(report)
-    else:
-      report_str = "Major errors found, cannot generate report."
+  if not major_errors:
+    report = generate_report(values)
 
-    return jsonify({
-      "major_errors": major_errors,
-      "errors": errors,
-      "warnings": warnings,
-      "report": report_str
-    }), 200
-  return jsonify({"error": "Invalid file type"}), 400
+    # Convert the list to a single string
+    report_str = "\n".join(report)
+    with open(FINAL_REPORT, 'w') as report_file:
+      report_file.write(report_str)
+  else:
+    report_str = "Major errors found, cannot generate report."
+
+  return jsonify({
+    "major_errors": major_errors,
+    "errors": errors,
+    "warnings": warnings,
+    "report": report_str
+  }), 200
 
 
 @app.route('/download', methods=['GET'])

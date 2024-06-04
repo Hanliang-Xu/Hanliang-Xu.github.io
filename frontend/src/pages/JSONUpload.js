@@ -3,7 +3,6 @@ import {Box, Button, Typography} from '@mui/material';
 
 const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com';
 
-
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
     const [errorReport, setErrorReport] = useState(null);
@@ -11,10 +10,32 @@ function JSONUpload() {
     const [report, setReport] = useState(null);
     const [uploadError, setUploadError] = useState(null);
 
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
+    const handleDirectoryUpload = async (event) => {
+        const files = event.target.files;
+        const jsonFiles = [];
+
+        // Recursively find all .json files directly under /perf/ and ending with "asl.json"
+        const findJSONFiles = (items) => {
+            for (const item of items) {
+                const relativePath = item.webkitRelativePath || item.relativePath;
+                const pathParts = relativePath.split('/');
+
+                // Check if the file is directly in the perf folder and ends with "asl.json"
+                if (pathParts.length === 4 && pathParts[pathParts.length - 3] === 'perf' && item.name.endsWith('asl.json')) {
+                    jsonFiles.push(item);
+                }
+            }
+        };
+
+        findJSONFiles(files);
+
+        if (jsonFiles.length === 0) {
+            setUploadError("No JSON files found in the selected folder directly under the /perf/ directory ending with 'asl.json'.");
+            return;
+        }
+
         const formData = new FormData();
-        formData.append('json-file', file);
+        jsonFiles.forEach(file => formData.append('json-files', file));
 
         try {
             const response = await fetch(`${API_BASE_URL}/upload`, {
@@ -57,12 +78,12 @@ function JSONUpload() {
             }}
         >
             <Typography variant="h4" gutterBottom>
-                Select a JSON file to validate
+                Select a BIDS folder to validate
             </Typography>
             <input
                 type="file"
-                onChange={handleFileUpload}
-                accept=".json"
+                webkitdirectory="true"
+                onChange={handleDirectoryUpload}
                 style={{margin: '20px 0'}}
             />
             {uploadError && (

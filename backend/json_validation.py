@@ -62,25 +62,3 @@ class JSONValidator:
         elif data.get(key) != value:
           return False
     return True
-
-  def generate_report(self, values):
-    report_lines = []
-
-    # Example extraction and formatting logic (add your own parameters and conditions)
-    if 'PostLabelingDelay' in values:
-      pld = values['PostLabelingDelay']
-      if isinstance(pld, list) and len(set(pld)) == 1:
-        pld = pld[0]
-      report_lines.append(f"REQ: ASL was acquired with single-PLD [{pld}]")
-
-    if 'ArterialSpinLabelingType' in values:
-      report_lines.append(f"PCASL [{values['ArterialSpinLabelingType']}] labeling")
-
-    if 'MRAcquisitionType' in values:
-      report_lines.append(
-        f"a {values['MRAcquisitionType']} [{values['MRAcquisitionType']}] EPI [PulseSequenceType] readout")
-
-    # Continue extracting and formatting other parameters...
-
-    report = "\n".join(report_lines)
-    return report
