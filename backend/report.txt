@@ -1,2 +1,12 @@
-PCASL [PASL] labeling
-a 3D [3D] EPI [PulseSequenceType] readout
+REQ: ASL was acquired with missing-PLD N/A labeling and a N/A N/A readout with the following parameters:
+
+REQ: TE N/A ms, TR N/A ms, flip angle N/A degrees,
+REQ: in-plane resolution N/AxN/A mm2,
+REQ: (TODO: number of slices) slices with N/A mm thickness,
+
+REQ: with background suppression
+REC: with N/A pulses
+REC: at N/A ms after the start of labeling.
+
+REQ: In total, N/A control-label pairs were acquired
+REC: in a N/A time.

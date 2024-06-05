@@ -4,8 +4,8 @@ import os
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from backend.json_validation import JSONValidator
-from backend.validator import *
+from json_validation import JSONValidator
+from validator import *
 
 app = Flask(__name__)
 CORS(app)
@@ -28,68 +28,52 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-  if 'json-files' not in request.files or 'filenames' not in request.form:
-    return jsonify({"error": "No file part"}), 400
+    if 'json-files' not in request.files or 'filenames' not in request.form:
+        return jsonify({"error": "No file part"}), 400
 
-  files = request.files.getlist('json-files')
-  filenames = request.form.getlist('filenames')
-  if not files or not filenames:
-    return jsonify({"error": "No selected files or filenames"}), 400
+    files = request.files.getlist('json-files')
+    filenames = request.form.getlist('filenames')
+    if not files or not filenames:
+        return jsonify({"error": "No selected files or filenames"}), 400
 
-  major_errors = {}
-  errors = {}
-  warnings = {}
-  values = {}
-  labeling_types = {}
+    json_arrays = []
 
-  for file, filename in zip(files, filenames):
-    if file.filename == '' or not file.filename.endswith('.json'):
-      return jsonify({"error": f"Invalid file: {file.filename}"}), 400
+    for file, filename in zip(files, filenames):
+        if not file.filename.endswith('.json'):
+            return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
-    file.save(filepath)
-    data, error = read_json(filepath)
-    if error:
-      return jsonify({"error": error, "filename": filename}), 400
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
+        file.save(filepath)
+        data, error = read_json(filepath)
+        if error:
+            return jsonify({"error": error, "filename": filename}), 400
 
-    file_major_errors, file_errors, file_warnings, file_values = validate_json(data)
+        json_arrays.append(data)
 
-    major_errors[filename] = file_major_errors
-    errors[filename] = file_errors
-    warnings[filename] = file_warnings
-    values[filename] = file_values
+    # Perform validation on the combined arrays
+    combined_major_errors, combined_errors, combined_warnings, combined_values = validate_json_arrays(json_arrays, filenames)
 
-    if 'ArterialSpinLabelingType' in file_values:
-      labeling_types[filename] = file_values['ArterialSpinLabelingType']
+    save_json(combined_major_errors, MAJOR_ERROR_REPORT)
+    save_json(combined_errors, ERROR_REPORT)
+    save_json(combined_warnings, WARNING_REPORT)
 
-  # Check for consistency in ArterialSpinLabelingType
-  if len(set(labeling_types.values())) > 1:
-    inconsistent_files = {fname: ltype for fname, ltype in labeling_types.items()}
-    return jsonify({"error": "Inconsistent ArterialSpinLabelingType across sessions",
-                    "inconsistent_files": inconsistent_files}), 400
+    if not any(combined_major_errors.values()):
+        report = generate_report(combined_values)
 
-  save_json(major_errors, MAJOR_ERROR_REPORT)
-  save_json(errors, ERROR_REPORT)
-  save_json(warnings, WARNING_REPORT)
+        # Convert the list to a single string
+        report_str = "\n".join(report)
+        with open(FINAL_REPORT, 'w') as report_file:
+            report_file.write(report_str)
+    else:
+        report_str = "Major errors found, cannot generate report."
 
-  if not any(major_errors.values()):
-    report = generate_report(values)
-
-    # Convert the list to a single string
-    report_str = "\n".join(report)
-    with open(FINAL_REPORT, 'w') as report_file:
-      report_file.write(report_str)
-  else:
-    report_str = "Major errors found, cannot generate report."
-
-  return jsonify({
-    "major_errors": major_errors,
-    "errors": errors,
-    "warnings": warnings,
-    "report": report_str
-  }), 200
-
+    return jsonify({
+        "major_errors": combined_major_errors,
+        "errors": combined_errors,
+        "warnings": combined_warnings,
+        "report": report_str
+    }), 200
 
 @app.route('/download', methods=['GET'])
 def download_report():
@@ -114,12 +98,12 @@ def read_json(file_path):
     return None, f"Error reading file: {str(e)}"
 
 
-def save_json(data, file_path):
-  with open(file_path, 'w') as file:
-    json.dump(data, file, indent=4)
+def save_json(data, filepath):
+  with open(filepath, 'w') as file:
+    json.dump(data, file, indent=2)
 
 
-def validate_json(data):
+def validate_json_arrays(data, filenames):
   major_error_schema = {
     "ArterialSpinLabelingType": StringValidator(
       allowed_values=["PASL", "(P)CASL", "PCASL", "CASL"]),
@@ -133,7 +117,6 @@ def validate_json(data):
     "AcquisitionVoxelSize": NumberArrayValidator(size_error=3),
     "LabelingDuration": NumberValidator(),
     "PostLabelingDelay": NumberOrNumberArrayValidator(),
-    "InversionTime": NumberValidator(min_error=0),
     "BolusCutOffTechnique": StringValidator(),
     "BolusCutOffDelayTime": NumberOrNumberArrayValidator(),
     "EchoTime": NumberValidator(),
@@ -146,8 +129,7 @@ def validate_json(data):
     "TotalAcquiredPairs": "all",
     "AcquisitionVoxelSize": "all",
     "LabelingDuration": {"ArterialSpinLabelingType": ["PCASL", "CASL"]},
-    "PostLabelingDelay": {"ArterialSpinLabelingType": ["PCASL", "CASL"]},
-    "InversionTime": {"ArterialSpinLabelingType": "PASL"},
+    "PostLabelingDelay": {"ArterialSpinLabelingType": ["PCASL", "CASL", "PASL"]},
     "BolusCutOffTechnique": {"ArterialSpinLabelingType": "PASL"},
     "BolusCutOffDelayTime": {"ArterialSpinLabelingType": "PASL"},
     "EchoTime": "all",
@@ -188,11 +170,15 @@ def validate_json(data):
     "PASLType": {"ArterialSpinLabelingType": "PASL"},
     "LabelingSlabThickness": {"ArterialSpinLabelingType": "PASL"}
   }
+  consistency_schema = {
+    "ArterialSpinLabelingType": ConsistencyValidator(type="string")
+    # "FlipAngle": ConsistencyValidator(type="float", range=(0, 360))
+  }
 
   validator = JSONValidator(major_error_schema, required_validator_schema,
                             required_condition_schema, recommended_validator_schema,
-                            recommended_condition_schema)
-  major_errors, errors, warnings, values = validator.validate(data)
+                            recommended_condition_schema, consistency_schema)
+  major_errors, errors, warnings, values = validator.validate(data, filenames)
   return major_errors, errors, warnings, values
 
 
@@ -307,7 +293,7 @@ def generate_report(values):
   if asl_type.upper() == 'PASL':
     report_lines.append("")
     report_lines.append(
-      f"REQ-PASL: inversion time {inversion_time} ms,"
+      f"REQ-PASL: inversion time {pld_value} ms,"
     )
     if bolus_cutoff_flag is not None:
       if bolus_cutoff_flag:

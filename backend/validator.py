@@ -119,3 +119,24 @@ class BooleanValidator(BaseValidator):
   def __init__(self):
     super().__init__()
     self.add_error_rule(lambda x: isinstance(x, bool), "Value must be a boolean (True or False)")
+
+
+class ConsistencyValidator:
+  def __init__(self, type, range=None):
+    self.type = type
+    self.range = range
+
+  def validate(self, values_with_filenames):
+    values = [value for value, _ in values_with_filenames]
+    filenames = [filename for _, filename in values_with_filenames]
+
+    if self.type == "string":
+      if len(set(values)) > 1:
+        return f"Inconsistent values: {list(zip(filenames, values))}", None
+    elif self.type == "float":
+      min_val, max_val = self.range
+      out_of_range = [(filename, value) for value, filename in values_with_filenames if
+                      value < min_val or value > max_val]
+      if out_of_range:
+        return f"Values out of range {self.range}: {out_of_range}", None
+    return None, None

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 
-const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com';
+//const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
@@ -37,7 +38,7 @@ function JSONUpload() {
         const formData = new FormData();
         jsonFiles.forEach(file => {
             formData.append('json-files', file);
-            formData.append('filenames', file.name); // Add filenames to the form data
+            formData.append('filenames', file.name);
         });
 
         try {

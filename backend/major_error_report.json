@@ -1,1 +1,3 @@
-{}
+{
+  "ArterialSpinLabelingType": "Inconsistent values: [('sub-Sub103_asl.json', 'PCASL'), ('sub-Sub1_asl.json', 'PASL'), ('sub-Sub1_asl.json', 'PCASL'), ('sub-Sub103_asl.json', 'PCASL'), ('sub-Sub103_asl.json', 'PCASL')]"
+}
