@@ -122,9 +122,11 @@ class BooleanValidator(BaseValidator):
 
 
 class ConsistencyValidator:
-  def __init__(self, type, range=None):
+  def __init__(self, type, range=None, error_variation=None, warning_variation=None):
     self.type = type
     self.range = range
+    self.error_variation = error_variation
+    self.warning_variation = warning_variation
 
   def validate(self, values_with_filenames):
     values = [value for value, _ in values_with_filenames]
@@ -134,9 +136,18 @@ class ConsistencyValidator:
       if len(set(values)) > 1:
         return f"Inconsistent values: {list(zip(filenames, values))}", None
     elif self.type == "float":
-      min_val, max_val = self.range
-      out_of_range = [(filename, value) for value, filename in values_with_filenames if
-                      value < min_val or value > max_val]
-      if out_of_range:
-        return f"Values out of range {self.range}: {out_of_range}", None
+      if self.range is not None:
+        min_val, max_val = self.range
+        out_of_range = [(filename, value) for value, filename in values_with_filenames if
+                        value < min_val or value > max_val]
+        if out_of_range:
+          return f"Values out of range {self.range}: {out_of_range}", None
+
+      # Check for allowable variation within the dataset
+      dataset_min = min(values)
+      dataset_max = max(values)
+      if self.error_variation is not None and (dataset_max - dataset_min) > self.error_variation:
+        return f"Values vary more than allowed {self.error_variation}: {list(zip(filenames, values))}", None
+      elif self.warning_variation is not None and (dataset_max - dataset_min) > self.warning_variation:
+        return None, f"Values vary slightly within {self.warning_variation}: {list(zip(filenames, values))}"
     return None, None

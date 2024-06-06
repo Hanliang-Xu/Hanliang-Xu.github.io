@@ -28,52 +28,54 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    if 'json-files' not in request.files or 'filenames' not in request.form:
-        return jsonify({"error": "No file part"}), 400
+  if 'json-files' not in request.files or 'filenames' not in request.form:
+    return jsonify({"error": "No file part"}), 400
 
-    files = request.files.getlist('json-files')
-    filenames = request.form.getlist('filenames')
-    if not files or not filenames:
-        return jsonify({"error": "No selected files or filenames"}), 400
+  files = request.files.getlist('json-files')
+  filenames = request.form.getlist('filenames')
+  if not files or not filenames:
+    return jsonify({"error": "No selected files or filenames"}), 400
 
-    json_arrays = []
+  json_arrays = []
 
-    for file, filename in zip(files, filenames):
-        if not file.filename.endswith('.json'):
-            return jsonify({"error": f"Invalid file: {file.filename}"}), 400
+  for file, filename in zip(files, filenames):
+    if not file.filename.endswith('.json'):
+      return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
-        file.save(filepath)
-        data, error = read_json(filepath)
-        if error:
-            return jsonify({"error": error, "filename": filename}), 400
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
+    file.save(filepath)
+    data, error = read_json(filepath)
+    if error:
+      return jsonify({"error": error, "filename": filename}), 400
 
-        json_arrays.append(data)
+    json_arrays.append(data)
 
-    # Perform validation on the combined arrays
-    combined_major_errors, combined_errors, combined_warnings, combined_values = validate_json_arrays(json_arrays, filenames)
+  # Perform validation on the combined arrays
+  combined_major_errors, combined_errors, combined_warnings, combined_values = validate_json_arrays(
+    json_arrays, filenames)
 
-    save_json(combined_major_errors, MAJOR_ERROR_REPORT)
-    save_json(combined_errors, ERROR_REPORT)
-    save_json(combined_warnings, WARNING_REPORT)
+  save_json(combined_major_errors, MAJOR_ERROR_REPORT)
+  save_json(combined_errors, ERROR_REPORT)
+  save_json(combined_warnings, WARNING_REPORT)
 
-    if not any(combined_major_errors.values()):
-        report = generate_report(combined_values)
+  if not any(combined_major_errors.values()):
+    report = generate_report(combined_values)
 
-        # Convert the list to a single string
-        report_str = "\n".join(report)
-        with open(FINAL_REPORT, 'w') as report_file:
-            report_file.write(report_str)
-    else:
-        report_str = "Major errors found, cannot generate report."
+    # Convert the list to a single string
+    report_str = "\n".join(report)
+    with open(FINAL_REPORT, 'w') as report_file:
+      report_file.write(report_str)
+  else:
+    report_str = "Major errors found, cannot generate report."
 
-    return jsonify({
-        "major_errors": combined_major_errors,
-        "errors": combined_errors,
-        "warnings": combined_warnings,
-        "report": report_str
-    }), 200
+  return jsonify({
+    "major_errors": combined_major_errors,
+    "errors": combined_errors,
+    "warnings": combined_warnings,
+    "report": report_str
+  }), 200
+
 
 @app.route('/download', methods=['GET'])
 def download_report():
@@ -101,6 +103,28 @@ def read_json(file_path):
 def save_json(data, filepath):
   with open(filepath, 'w') as file:
     json.dump(data, file, indent=2)
+
+
+def convert_to_milliseconds(values):
+  """Utility function to convert seconds to milliseconds and round close values to integers."""
+
+  def round_if_close(val, decimal_places=3):
+    rounded_val = round(val, decimal_places)
+    if abs(val - round(val)) < 1e-6:
+      return round(val)
+    return rounded_val
+
+  def convert_value(value):
+    if isinstance(value, (int, float)):
+      return round_if_close(value * SECOND_TO_MILLISECOND)
+    elif isinstance(value, list):
+      return [round_if_close(v * SECOND_TO_MILLISECOND) for v in value]
+    return value
+
+  if isinstance(values, list):
+    return [convert_value(value) for value in values]
+  else:
+    return convert_value(values)
 
 
 def validate_json_arrays(data, filenames):
@@ -171,65 +195,46 @@ def validate_json_arrays(data, filenames):
     "LabelingSlabThickness": {"ArterialSpinLabelingType": "PASL"}
   }
   consistency_schema = {
-    "ArterialSpinLabelingType": ConsistencyValidator(type="string")
-    # "FlipAngle": ConsistencyValidator(type="float", range=(0, 360))
+    "ArterialSpinLabelingType": ConsistencyValidator(type="string"),
+    "EchoTime": ConsistencyValidator(type="float", error_variation=0.1, warning_variation=0.0001)
   }
 
   validator = JSONValidator(major_error_schema, required_validator_schema,
                             required_condition_schema, recommended_validator_schema,
                             recommended_condition_schema, consistency_schema)
+
+  # Convert all necessary values from seconds to milliseconds before validation
+  for session in data:
+    for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration', 'BolusCutOffDelayTime',
+                'BackgroundSuppressionPulseTime']:
+      if key in session:
+        session[key] = convert_to_milliseconds(session[key])
+
   major_errors, errors, warnings, values = validator.validate(data, filenames)
   return major_errors, errors, warnings, values
-
-
-def convert_to_milliseconds(value):
-  """Utility function to convert seconds to milliseconds and round close values to integers."""
-
-  def round_if_close(val, decimal_places=3):
-    rounded_val = round(val, decimal_places)
-    if abs(val - round(val)) < 1e-6:
-      return round(val)
-    return rounded_val
-
-  if isinstance(value, (int, float)):
-    return round_if_close(value * SECOND_TO_MILLISECOND)
-  elif isinstance(value, list):
-    return [round_if_close(v * SECOND_TO_MILLISECOND) for v in value]
-  return value
 
 
 def generate_report(values):
   report_lines = []
 
-  # Check and process PostLabelingDelay
-  if 'PostLabelingDelay' in values:
-    pld = values['PostLabelingDelay']
-    if isinstance(pld, list):
-      if len(set(pld)) == 1:
-        pld_text = f"single-PLD"
-        pld_value = convert_to_milliseconds(pld[0])
-      else:
-        pld_text = "multi-PLD"
-        pld_value = "["
-        for i, val in enumerate(convert_to_milliseconds(pld)):
-          if i > 0 and i % 10 == 0:
-            pld_value += "\n"
-          pld_value += f"{val}, "
-        pld_value = pld_value.rstrip(", ")
-        pld_value += "]"
-    else:
-      pld_text = f"single-PLD"
-      pld_value = convert_to_milliseconds(pld)
-  else:
-    pld_text = "missing-PLD"
-    pld_value = 'N/A'
+  # Extract PostLabelingDelay entries
+  pld_values = [entry[1] for entry in values.get('PostLabelingDelay')]
 
-  # Additional parameters
-  asl_type = values.get('ArterialSpinLabelingType', 'N/A')
+  if all(isinstance(pld, list) and len(pld) > 1 for pld in pld_values):
+    pld_text = "multi-PLD"
+  elif all((isinstance(pld, list) and len(pld) == 1) or not isinstance(pld, list) for pld in
+           pld_values):
+    pld_text = "single-PLD"
+  else:
+    pld_text = "mixed-PLD"
+
+  # assume that ASL type is consistent across all sessions
+  asl_type = values.get('ArterialSpinLabelingType')[0][1]
+
   mr_acq_type = values.get('MRAcquisitionType', 'N/A')
   pulse_seq_type = values.get('PulseSequenceType', 'N/A')
-  echo_time = convert_to_milliseconds(values.get('EchoTime', 'N/A'))
-  repetition_time = convert_to_milliseconds(values.get('RepetitionTimePreparation', 'N/A'))
+  echo_time = values.get('EchoTime', 'N/A')
+  repetition_time = values.get('RepetitionTimePreparation', 'N/A')
   flip_angle = values.get('FlipAngle', 'N/A')
 
   # Extract voxel sizes safely
@@ -241,15 +246,13 @@ def generate_report(values):
     voxel_size_1_2 = 'N/A'
     voxel_size_3 = 'N/A'
 
-  labeling_duration = convert_to_milliseconds(values.get('LabelingDuration', 'N/A'))
-  inversion_time = convert_to_milliseconds(values.get('InversionTime', 'N/A'))
+  labeling_duration = values.get('LabelingDuration', 'N/A')
   bolus_cutoff_flag = values.get('BolusCutOffFlag', 'N/A')
   bolus_cutoff_technique = values.get('BolusCutOffTechnique', 'N/A')
-  bolus_cutoff_delay_time = convert_to_milliseconds(values.get('BolusCutOffDelayTime', 'N/A'))
+  bolus_cutoff_delay_time = values.get('BolusCutOffDelayTime', 'N/A')
   background_suppression = values.get('BackgroundSuppression', 'N/A')
   background_suppression_number_pulses = values.get('BackgroundSuppressionNumberPulses', 'N/A')
-  background_suppression_pulse_time = convert_to_milliseconds(
-    values.get('BackgroundSuppressionPulseTime', 'N/A'))
+  background_suppression_pulse_time = values.get('BackgroundSuppressionPulseTime', 'N/A')
   total_acquired_pairs = values.get('TotalAcquiredPairs', 'N/A')
   acquisition_duration = values.get('AcquisitionDuration', 'N/A')
 
@@ -264,6 +267,10 @@ def generate_report(values):
   # Creating the report lines
   report_lines.append(
     f"REQ: ASL was acquired with {pld_text} {asl_type} labeling and a "
+    f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
+  )
+  report_lines.append(
+    f"REQ: ASL was acquired with {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
   )
   report_lines.append("")
@@ -286,15 +293,18 @@ def generate_report(values):
       f"REQ-PCASL: labeling duration {labeling_duration} ms,"
     )
     report_lines.append(
-      f"REQ-PCASL: PLD {pld_value} ms,"
+      f"REQ-PCASL: PLD {pld_values} ms,"
     )
 
   # Additional lines for PASL
+  """
   if asl_type.upper() == 'PASL':
     report_lines.append("")
+
     report_lines.append(
       f"REQ-PASL: inversion time {pld_value} ms,"
     )
+
     if bolus_cutoff_flag is not None:
       if bolus_cutoff_flag:
         report_lines.append(
@@ -311,7 +321,7 @@ def generate_report(values):
         report_lines.append(
           f"REQ-PASL: without bolus saturation"
         )
-
+  """
   report_lines.append("")
   # Additional lines for Background Suppression
   if background_suppression is not None:
