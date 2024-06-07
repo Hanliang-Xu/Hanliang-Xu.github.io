@@ -196,7 +196,13 @@ def validate_json_arrays(data, filenames):
   }
   consistency_schema = {
     "ArterialSpinLabelingType": ConsistencyValidator(type="string"),
-    "EchoTime": ConsistencyValidator(type="float", error_variation=0.1, warning_variation=0.0001)
+    "EchoTime": ConsistencyValidator(type="float", error_variation=0.1, warning_variation=0.0001),
+    "RepetitionTimePreparation": ConsistencyValidator(type="float", error_variation=100,
+                                                      warning_variation=0.1),
+    "LabelingDuration": ConsistencyValidator(type="float", error_variation=100,
+                                             warning_variation=0.1),
+    "BackgroundSuppression": ConsistencyValidator(type="boolean"),
+    "AcquisitionVoxelSize": ConsistencyValidator(type="array")
   }
 
   validator = JSONValidator(major_error_schema, required_validator_schema,
@@ -215,6 +221,29 @@ def validate_json_arrays(data, filenames):
 
 
 def generate_report(values):
+  def assign_single_value(values, warning_threshold, error_threshold):
+    if not values:
+      return "N/A"
+
+    min_value = min(values)
+    max_value = max(values)
+    mean_value = sum(values) / len(values)
+
+    # Check if all values are within the specified range
+    if (max_value - min_value) > error_threshold:
+      return "N/A"
+    # If variation exceeds the warning threshold, return the range in "xxx - xxx" format
+    elif (max_value - min_value) > warning_threshold:
+      return f"{min_value} - {max_value}"
+    # If within range and thresholds, return the single value
+    else:
+      rounded_val = round(mean_value, 3)
+      if abs(mean_value - round(rounded_val)) < 1e-6:
+        return f"{round(mean_value)}"
+      else:
+        return f"{mean_value:.2f}"
+    return "N/A"
+
   report_lines = []
 
   # Extract PostLabelingDelay entries
@@ -233,7 +262,8 @@ def generate_report(values):
 
   mr_acq_type = values.get('MRAcquisitionType', 'N/A')
   pulse_seq_type = values.get('PulseSequenceType', 'N/A')
-  echo_time = values.get('EchoTime', 'N/A')
+  echo_time = assign_single_value([entry[1] for entry in values.get('EchoTime', 'N/A')], 0.0001,
+                                  0.1)
   repetition_time = values.get('RepetitionTimePreparation', 'N/A')
   flip_angle = values.get('FlipAngle', 'N/A')
 
@@ -267,10 +297,6 @@ def generate_report(values):
   # Creating the report lines
   report_lines.append(
     f"REQ: ASL was acquired with {pld_text} {asl_type} labeling and a "
-    f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
-  )
-  report_lines.append(
-    f"REQ: ASL was acquired with {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
   )
   report_lines.append("")
@@ -325,20 +351,15 @@ def generate_report(values):
   report_lines.append("")
   # Additional lines for Background Suppression
   if background_suppression is not None:
-    if background_suppression:
+    if all(background_suppression):
+      report_lines.append("REQ: with background suppression")
+      report_lines.append(f"REC: with {background_suppression_number_pulses} pulses")
       report_lines.append(
-        f"REQ: with background suppression"
-      )
-      report_lines.append(
-        f"REC: with {background_suppression_number_pulses} pulses"
-      )
-      report_lines.append(
-        f"REC: at {background_suppression_pulse_time} ms after the start of labeling."
-      )
+        f"REC: at {background_suppression_pulse_time} ms after the start of labeling.")
+    elif not any(background_suppression):
+      report_lines.append("REQ: without background suppression")
     else:
-      report_lines.append(
-        f"REQ: without background suppression"
-      )
+      report_lines.append("REQ: inconsistent background suppression")
 
   report_lines.append("")
   # Additional lines for total pairs and acquisition duration

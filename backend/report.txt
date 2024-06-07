@@ -1,16 +1,15 @@
-REQ: ASL was acquired with mixed-PLD PCASL labeling and a [('sub-Sub103_asl.json', '3D'), ('sub-Sub1_asl.json', '2D'), ('sub-Sub103_asl.json', '3D'), ('sub-Sub103_asl.json', '2D')] [('sub-Sub103_asl.json', 'spiral'), ('sub-Sub1_asl.json', 'EPI'), ('sub-Sub103_asl.json', '3Dgrase'), ('sub-Sub103_asl.json', 'EPI')] readout with the following parameters:
-REQ: ASL was acquired with PCASL labeling and a [('sub-Sub103_asl.json', '3D'), ('sub-Sub1_asl.json', '2D'), ('sub-Sub103_asl.json', '3D'), ('sub-Sub103_asl.json', '2D')] [('sub-Sub103_asl.json', 'spiral'), ('sub-Sub1_asl.json', 'EPI'), ('sub-Sub103_asl.json', '3Dgrase'), ('sub-Sub103_asl.json', 'EPI')] readout with the following parameters:
+REQ: ASL was acquired with single-PLD PCASL labeling and a [('sub-Sub103_asl.json', '2D')] [('sub-Sub103_asl.json', 'EPI')] readout with the following parameters:
 
-REQ: TE N/A ms, TR [('sub-Sub103_asl.json', 4886), ('sub-Sub1_asl.json', 4050), ('sub-Sub103_asl.json', 4950), ('sub-Sub103_asl.json', 4571.681)] ms, flip angle [('sub-Sub103_asl.json', 111), ('sub-Sub1_asl.json', 90), ('sub-Sub103_asl.json', 130), ('sub-Sub103_asl.json', 90)] degrees,
-REQ: in-plane resolution ('sub-Sub103_asl.json', [4, 4, 8])x('sub-Sub1_asl.json', [3.4375, 3.4375, 4.05]) mm2,
-REQ: (TODO: number of slices) slices with ('sub-Sub103_asl.json', [3.4, 3.4, 4]) mm thickness,
+REQ: TE 15 ms, TR [('sub-Sub103_asl.json', 4571.681)] ms, flip angle [('sub-Sub103_asl.json', 90)] degrees,
+REQ: in-plane resolution N/A mm2,
+REQ: (TODO: number of slices) slices with N/A mm thickness,
 
-REQ-PCASL: labeling duration [('sub-Sub103_asl.json', 1450), ('sub-Sub1_asl.json', 1400), ('sub-Sub103_asl.json', 1800), ('sub-Sub103_asl.json', 1800)] ms,
-REQ-PCASL: PLD [2.025, [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5], 2.0, 2.0] ms,
+REQ-PCASL: labeling duration [('sub-Sub103_asl.json', 1800)] ms,
+REQ-PCASL: PLD [2.0] ms,
 
 REQ: with background suppression
-REC: with [('sub-Sub103_asl.json', 4), ('sub-Sub1_asl.json', 2), ('sub-Sub103_asl.json', 4), ('sub-Sub103_asl.json', 2)] pulses
-REC: at [('sub-Sub103_asl.json', [1965, 2600, 3100, 3380]), ('sub-Sub1_asl.json', [1428, 1604]), ('sub-Sub103_asl.json', [2290, 2925, 3425, 3705]), ('sub-Sub103_asl.json', [2050, 3276])] ms after the start of labeling.
+REC: with [('sub-Sub103_asl.json', 2)] pulses
+REC: at [('sub-Sub103_asl.json', [2050, 3276])] ms after the start of labeling.
 
-REQ: In total, [('sub-Sub103_asl.json', 3), ('sub-Sub1_asl.json', 48), ('sub-Sub103_asl.json', 8), ('sub-Sub103_asl.json', 35)] control-label pairs were acquired
+REQ: In total, [('sub-Sub103_asl.json', 35)] control-label pairs were acquired
 REC: in a N/A time.

@@ -148,6 +148,56 @@ class ConsistencyValidator:
       dataset_max = max(values)
       if self.error_variation is not None and (dataset_max - dataset_min) > self.error_variation:
         return f"Values vary more than allowed {self.error_variation}: {list(zip(filenames, values))}", None
-      elif self.warning_variation is not None and (dataset_max - dataset_min) > self.warning_variation:
+      elif self.warning_variation is not None and (
+          dataset_max - dataset_min) > self.warning_variation:
         return None, f"Values vary slightly within {self.warning_variation}: {list(zip(filenames, values))}"
+    elif self.type == "boolean":
+      if not all(values) and any(values):
+        return f"Inconsistent boolean values: {list(zip(filenames, values))}", None
+    elif self.type == "array":
+      # Check if all arrays are the same length
+      first_length = len(values[0])
+      for array, filename in zip(values, filenames):
+        if len(array) != first_length:
+          example1 = (filenames[0], values[0])
+          example2 = (filename, array)
+          return f"Inconsistent array lengths. Example: {example1}, {example2}", None
+
+      # Check if all arrays are exactly the same
+      first_array = values[0]
+      for array, filename in zip(values, filenames):
+        if array != first_array:
+          example1 = (filenames[0], values[0])
+          example2 = (filename, array)
+          return f"Inconsistent arrays. Example: {example1}, {example2}", None
+
+      return None, None
+    elif self.type == "array_of_value_and_array":
+      if all(isinstance(value, (int, float)) for value in values):
+        if self.range is not None:
+          min_val, max_val = self.range
+          out_of_range = [(filename, value) for value, filename in values_with_filenames if
+                          value < min_val or value > max_val]
+          if out_of_range:
+            return f"Values out of range {self.range}: {out_of_range}", None
+
+        dataset_min = min(values)
+        dataset_max = max(values)
+        if self.error_variation is not None and (dataset_max - dataset_min) > self.error_variation:
+          return f"Values vary more than allowed {self.error_variation}: {list(zip(filenames, values))}", None
+        elif self.warning_variation is not None and (
+            dataset_max - dataset_min) > self.warning_variation:
+          return None, f"Values vary slightly within {self.warning_variation}: {list(zip(filenames, values))}"
+      elif all(isinstance(value, list) for value in values):
+        # All elements are arrays, check for consistency
+        if not all(len(value) == len(values[0]) for value in values):
+          return f"Inconsistent array lengths: {list(zip(filenames, values))}", None
+        for i in range(len(values[0])):
+          sub_values = [value[i] for value in values]
+          if len(set(sub_values)) > 1:
+            return f"Inconsistent values in arrays at index {i}: {list(zip(filenames, sub_values))}", None
+      else:
+        # Mixed values and arrays, add warning
+        return None, f"Mixed values and arrays: {list(zip(filenames, values))}"
+
     return None, None
