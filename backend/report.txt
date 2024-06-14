@@ -1,15 +1,12 @@
-REQ: ASL was acquired with single-PLD PCASL labeling and a [('sub-Sub103_asl.json', '2D')] [('sub-Sub103_asl.json', 'EPI')] readout with the following parameters:
+REQ: ASL was acquired with single-PLD (inconsistent, 2000 is the most common data) ms PCASL labeling and a 3D 3Dgrase readout with the following parameters:
 
-REQ: TE 15 ms, TR [('sub-Sub103_asl.json', 4571.681)] ms, flip angle [('sub-Sub103_asl.json', 90)] degrees,
-REQ: in-plane resolution N/A mm2,
-REQ: (TODO: number of slices) slices with N/A mm thickness,
+REQ: (inconsistent, 13.28 is the most common data) TE ms, TR (inconsistent, 4950 is the most common data) ms, flip angle (inconsistent, 130 is the most common data) degrees,
+REQ: in-plane resolution (inconsistent, 3.4x3.4 is the most common) mm2,
+REQ: (TODO: number of slices) slices with (inconsistent, 4 is the most common) mm thickness,
 
-REQ-PCASL: labeling duration [('sub-Sub103_asl.json', 1800)] ms,
-REQ-PCASL: PLD [2.0] ms,
+REQ-PCASL: labeling duration (inconsistent, 1800 is the most common data) ms,
+REQ-PCASL: PLD (inconsistent, 2000 is the most common data) ((inconsistent, 8 is the most common data) repetition) ms,
 
-REQ: with background suppression
-REC: with [('sub-Sub103_asl.json', 2)] pulses
-REC: at [('sub-Sub103_asl.json', [2050, 3276])] ms after the start of labeling.
+REQ: (inconsistent, with is the most common) background suppression
 
-REQ: In total, [('sub-Sub103_asl.json', 35)] control-label pairs were acquired
-REC: in a N/A time.
+REQ: In total, (inconsistent, 8 is the most common data) control-label pairs were acquired

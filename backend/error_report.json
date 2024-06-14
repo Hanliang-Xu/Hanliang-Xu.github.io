@@ -1,1 +1,26 @@
-{}
+{
+  "BackgroundSuppression": [
+    "INCONSISTENCY: Inconsistent boolean values: [('sub-Sub103_asl.json', False), ('sub-Sub103_asl.json', True), ('sub-Sub103_asl.json', True)]"
+  ],
+  "TotalAcquiredPairs": [
+    "INCONSISTENCY: Inconsistent float values: [('sub-Sub103_asl.json', 10), ('sub-Sub103_asl.json', 8), ('sub-Sub103_asl.json', 8)]"
+  ],
+  "AcquisitionVoxelSize": [
+    "INCONSISTENCY: Values in arrays vary more than allowed 0.1 at index 2: [('sub-Sub103_asl.json', 4.5), ('sub-Sub103_asl.json', 4), ('sub-Sub103_asl.json', 4)]"
+  ],
+  "LabelingDuration": [
+    "INCONSISTENCY: Float values vary more than allowed 10: [('sub-Sub103_asl.json', 2800), ('sub-Sub103_asl.json', 1800), ('sub-Sub103_asl.json', 1800)]"
+  ],
+  "PostLabelingDelay": [
+    "INCONSISTENCY: Float values vary more than allowed 10: [('sub-Sub103_asl.json', 8000), ('sub-Sub103_asl.json', 2000), ('sub-Sub103_asl.json', 2000)]"
+  ],
+  "EchoTime": [
+    "INCONSISTENCY: Float values vary more than allowed 0.1: [('sub-Sub103_asl.json', 50), ('sub-Sub103_asl.json', 13.28), ('sub-Sub103_asl.json', 13.28)]"
+  ],
+  "RepetitionTimePreparation": [
+    "INCONSISTENCY: Float values vary more than allowed 10: [('sub-Sub103_asl.json', 5950), ('sub-Sub103_asl.json', 4950), ('sub-Sub103_asl.json', 4950)]"
+  ],
+  "FlipAngle": [
+    "INCONSISTENCY: Float values vary more than allowed 1: [('sub-Sub103_asl.json', 135), ('sub-Sub103_asl.json', 130), ('sub-Sub103_asl.json', 130)]"
+  ]
+}
