@@ -498,73 +498,67 @@ def generate_report(values, combined_errors):
 
   # Creating the report lines
   report_lines.append(
-    f"REQ: ASL was acquired with {pld_type} {basic_pld_text} ms {asl_type} labeling and a "
-    f"{mr_acq_type} {pulse_seq_type} readout with the following parameters:"
+    f"ASL was acquired with {pld_type} {basic_pld_text} ms {asl_type} labeling and a "
+    f"{mr_acq_type} {pulse_seq_type} readout with the following parameters: "
   )
-  report_lines.append("")
 
   report_lines.append(
-    f"REQ: {echo_time} TE ms, TR {repetition_time} ms,"
+    f"{echo_time} TE ms, TR {repetition_time} ms, "
     f" flip angle {flip_angle} degrees,"
   )
   report_lines.append(
-    f"REQ: in-plane resolution {voxel_size_1_2} mm2,"
+    f"in-plane resolution {voxel_size_1_2} mm2, "
   )
   report_lines.append(
-    f"REQ: (TODO: number of slices) slices with {voxel_size_3} mm thickness,"
+    f"(TODO: number of slices) slices with {voxel_size_3} mm thickness, "
   )
 
   # Additional lines for PCASL
   if asl_type == 'PCASL':
-    report_lines.append("")
     report_lines.append(
-      f"REQ-PCASL: labeling duration {labeling_duration} ms,"
+      f"labeling duration {labeling_duration} ms, "
     )
     report_lines.append(
-      f"REQ-PCASL: PLD {extended_pld_text} ms,"
+      f"PLD {extended_pld_text} ms, "
     )
 
   # Additional lines for PASL
   if asl_type.upper() == 'PASL':
-    report_lines.append("")
-
     report_lines.append(
-      f"REQ-PASL: inversion time {extended_pld_text} ms,"
+      f"inversion time {extended_pld_text} ms, "
     )
 
     if bolus_cutoff_flag is not None:
       report_lines.append(
-        f"REQ-PASL: {bolus_cutoff_flag} bolus saturation"
+        f"{bolus_cutoff_flag} bolus saturation "
       )
       if bolus_cutoff_flag == "with":
         report_lines.append(
-          f"REC-PASL: using {bolus_cutoff_technique} pulse"
+          f"using {bolus_cutoff_technique} pulse "
         )
         report_lines.append(
-          f"REC-PASL: applied at {format_array(bolus_cutoff_delay_time)}"
-          f" ms after the labeling,"
+          f"applied at {format_array(bolus_cutoff_delay_time)}"
+          f" ms after the labeling, "
         )
 
-  report_lines.append("")
   if background_suppression is not None:
-    report_lines.append(f"REQ: {background_suppression} background suppression")
+    report_lines.append(f"{background_suppression} background suppression ")
     if background_suppression == "with":
-      report_lines.append(f"REC: with {background_suppression_number_pulses} pulses")
+      report_lines.append(f"with {background_suppression_number_pulses} pulses ")
       report_lines.append(
         f"REC: at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
 
 
-  report_lines.append("")
   # Additional lines for total pairs and acquisition duration
   report_lines.append(
-    f"REQ: In total, {total_acquired_pairs} control-label pairs were acquired"
+    f"In total, {total_acquired_pairs} control-label pairs were acquired "
   )
   if (acquisition_duration != "N/A"):
     report_lines.append(
-      f"REC: in a {acquisition_duration} time."
+      f"in a {acquisition_duration} time."
     )
 
-  return report_lines
+  return "\n".join(report_lines)
 
 
 if __name__ == '__main__':
