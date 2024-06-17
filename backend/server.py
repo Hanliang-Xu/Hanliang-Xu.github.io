@@ -5,8 +5,8 @@ from collections import Counter
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from backend.json_validation import JSONValidator
-from backend.validator import *
+from json_validation import JSONValidator
+from validator import *
 
 app = Flask(__name__)
 CORS(app)
@@ -44,7 +44,7 @@ def upload_files():
       return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)  # Ensure directory exists
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
     data, error = read_json(filepath)
     if error:
@@ -63,8 +63,12 @@ def upload_files():
   if not any(combined_major_errors.values()):
     report = generate_report(combined_values, combined_errors)
 
-    # Convert the list to a single string
-    report_str = "\n".join(report)
+    # Ensure report is a single string
+    if isinstance(report, list):
+      report_str = " ".join(report)  # Use space to join for a single paragraph
+    else:
+      report_str = str(report)
+
     with open(FINAL_REPORT, 'w') as report_file:
       report_file.write(report_str)
   else:
@@ -546,7 +550,7 @@ def generate_report(values, combined_errors):
     if background_suppression == "with":
       report_lines.append(f"with {background_suppression_number_pulses} pulses ")
       report_lines.append(
-        f"REC: at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
+        f"at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
 
 
   # Additional lines for total pairs and acquisition duration
@@ -558,7 +562,12 @@ def generate_report(values, combined_errors):
       f"in a {acquisition_duration} time."
     )
 
-  return "\n".join(report_lines)
+  # Join the lines into a single paragraph
+  report_paragraph = " ".join(line.strip() for line in report_lines)
+
+  print(report_paragraph)
+
+  return report_paragraph
 
 
 if __name__ == '__main__':
