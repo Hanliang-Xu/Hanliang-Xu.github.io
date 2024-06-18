@@ -89,7 +89,7 @@ function JSONUpload() {
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
             }}>{showConcise ? JSON.stringify(conciseReport, null, 2) : JSON.stringify(fullReport, null, 2)}</pre>
-            {type !== 'warnings' && (
+            {(
                 <Button variant="contained" color="error"
                         onClick={() => handleDownloadReport(type)}>
                     Download {title} Report
@@ -146,7 +146,7 @@ function JSONUpload() {
                 setShowErrorConcise,
                 'errors'
             )}
-            {!majorErrorReport && warningReport && renderReportSection(
+            {warningReport && renderReportSection(
                 "WARNINGS",
                 warningReport,
                 warningReportConcise,
