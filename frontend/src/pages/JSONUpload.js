@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import React, {useState} from 'react';
+import {Box, Button, Typography} from '@mui/material';
 
 const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
 
@@ -16,17 +16,6 @@ function JSONUpload() {
     const [showMajorConcise, setShowMajorConcise] = useState(true);
     const [showErrorConcise, setShowErrorConcise] = useState(true);
     const [showWarningConcise, setShowWarningConcise] = useState(true);
-
-    const extractInconsistencies = (conciseReport) => {
-        const inconsistencies = {};
-        for (const [key, value] of Object.entries(conciseReport)) {
-            const matches = value.match(/INCONSISTENCY: (.+)$/);
-            if (matches) {
-                inconsistencies[key] = matches[1];
-            }
-        }
-        return inconsistencies;
-    };
 
     const handleDirectoryUpload = async (event) => {
         const files = event.target.files;
@@ -94,17 +83,20 @@ function JSONUpload() {
             borderRadius: '8px',
             backgroundColor: type === 'major_errors' ? '#ffe6e6' : type === 'errors' ? '#ffe6e6' : '#fff4e6'
         }}>
-            <Typography variant="h6" sx={{ color: type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange' }}>{title}:</Typography>
+            <Typography variant="h6"
+                        sx={{color: type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}}>{title}:</Typography>
             <pre style={{
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
             }}>{showConcise ? JSON.stringify(conciseReport, null, 2) : JSON.stringify(fullReport, null, 2)}</pre>
             {type !== 'warnings' && (
-                <Button variant="contained" color="error" onClick={() => handleDownloadReport(type)}>
+                <Button variant="contained" color="error"
+                        onClick={() => handleDownloadReport(type)}>
                     Download {title} Report
                 </Button>
             )}
-            <Button variant="contained" color="secondary" onClick={() => setShowConcise(!showConcise)}>
+            <Button variant="contained" color="secondary"
+                    onClick={() => setShowConcise(!showConcise)}>
                 {showConcise ? "Show Full Report" : "Show Concise Report"}
             </Button>
         </Box>
@@ -130,10 +122,10 @@ function JSONUpload() {
                 type="file"
                 webkitdirectory="true"
                 onChange={handleDirectoryUpload}
-                style={{ margin: '20px 0' }}
+                style={{margin: '20px 0'}}
             />
             {uploadError && (
-                <Box mt={2} sx={{ color: 'red' }}>
+                <Box mt={2} sx={{color: 'red'}}>
                     <Typography variant="h6">Upload Error:</Typography>
                     <pre>{uploadError}</pre>
                 </Box>
@@ -171,9 +163,10 @@ function JSONUpload() {
                     maxHeight: '400px',
                     overflowY: 'auto'
                 }}>
-                    <Typography variant="h6" sx={{ color: 'blue' }}>Generated Report:</Typography>
-                    <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>{report}</pre>
-                    <Button variant="contained" color="primary" onClick={() => handleDownloadReport('report')}>
+                    <Typography variant="h6" sx={{color: 'blue'}}>Generated Report:</Typography>
+                    <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{report}</pre>
+                    <Button variant="contained" color="primary"
+                            onClick={() => handleDownloadReport('report')}>
                         Download Generated Report
                     </Button>
                 </Box>
