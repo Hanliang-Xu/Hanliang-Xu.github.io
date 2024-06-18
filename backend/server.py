@@ -2,11 +2,12 @@ import json
 import os
 from collections import Counter
 
+import nibabel as nib
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from json_validation import JSONValidator
-from validator import *
+from backend.json_validation import JSONValidator
+from backend.validator import *
 
 app = Flask(__name__)
 CORS(app)
@@ -38,22 +39,29 @@ def upload_files():
     return jsonify({"error": "No selected files or filenames"}), 400
 
   json_arrays = []
+  nifti_slice_number = None
 
   for file, filename in zip(files, filenames):
-    if not file.filename.endswith('.json'):
+    if not file.filename.endswith(('.json', '.nii', '.nii.gz')):
       return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
-    data, error = read_json(filepath)
-    if error:
-      return jsonify({"error": error, "filename": filename}), 400
 
-    json_arrays.append(data)
+    if file.filename.endswith('.json'):
+      data, error = read_json(filepath)
+      if error:
+        return jsonify({"error": error, "filename": filename}), 400
+      json_arrays.append(data)
+    elif file.filename.endswith(('.nii', '.nii.gz')):
+      nifti_slice_number, error = read_nifti_file(filepath)
+      if error:
+        return jsonify({"error": error, "filename": filename}), 400
 
   # Perform validation on the combined arrays
-  combined_major_errors, combined_errors, combined_warnings, combined_values = validate_json_arrays(
+  (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
+   combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
     json_arrays, filenames)
 
   save_json(combined_major_errors, MAJOR_ERROR_REPORT)
@@ -61,11 +69,11 @@ def upload_files():
   save_json(combined_warnings, WARNING_REPORT)
 
   if not any(combined_major_errors.values()):
-    report = generate_report(combined_values, combined_errors)
+    report = generate_report(combined_values, combined_errors, slice_number=nifti_slice_number)
 
     # Ensure report is a single string
     if isinstance(report, list):
-      report_str = " ".join(report)  # Use space to join for a single paragraph
+      report_str = "".join(report)  # Use space to join for a single paragraph
     else:
       report_str = str(report)
 
@@ -76,9 +84,13 @@ def upload_files():
 
   return jsonify({
     "major_errors": combined_major_errors,
+    "major_errors_concise": combined_major_errors_concise,
     "errors": combined_errors,
+    "errors_concise": combined_errors_concise,
     "warnings": combined_warnings,
-    "report": report_str
+    "warnings_concise": combined_warnings_concise,
+    "report": report_str,
+    "nifti_slice_number": nifti_slice_number
   }), 200
 
 
@@ -108,6 +120,15 @@ def read_json(file_path):
 def save_json(data, filepath):
   with open(filepath, 'w') as file:
     json.dump(data, file, indent=2)
+
+
+def read_nifti_file(filepath):
+  try:
+    nifti_img = nib.load(filepath)
+    slice_number = nifti_img.shape[-1]
+    return slice_number, None
+  except Exception as e:
+    return None, str(e)
 
 
 def determine_pld_type(session):
@@ -253,8 +274,10 @@ def validate_json_arrays(data, filenames):
         session[key] = convert_to_milliseconds(session[key])
     session['PLDType'] = determine_pld_type(session)
 
-  major_errors, errors, warnings, values = validator.validate(data, filenames)
-  return major_errors, errors, warnings, values
+  major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values\
+    = validator.validate(data, filenames)
+  return (major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise,
+          values)
 
 
 def handle_boolean_inconsistency(values, key, combined_errors):
@@ -275,12 +298,11 @@ def handle_boolean_inconsistency(values, key, combined_errors):
     return "consistent", bool(first_value[0][1]) if first_value else 'N/A'
 
 
-def handle_inconsistency(values, key, combined_errors, report_range=False):
+def handle_inconsistency(values, key, combined_errors):
   # Check if there are any inconsistencies for the given key
   inconsistencies = [
     error for error in combined_errors.get(key, []) if "INCONSISTENCY" in error
   ]
-  most_common_value = None
   value_range = None
 
   if inconsistencies:
@@ -294,7 +316,7 @@ def handle_inconsistency(values, key, combined_errors, report_range=False):
         if len(val) == 1:
           normalized_values.append(val[0])
         else:
-          normalized_values.append(tuple(val))  # Convert sublists to tuples
+          normalized_values.append(tuple(val))
       else:
         normalized_values.append(val)
 
@@ -302,11 +324,9 @@ def handle_inconsistency(values, key, combined_errors, report_range=False):
     counter = Counter(normalized_values)
     most_common_value, count = counter.most_common(1)[0]
 
-    if report_range:
-      # Flatten values for range calculation
-      flattened_values = [item for sublist in normalized_values for item in
-                          (sublist if isinstance(sublist, tuple) else [sublist])]
-      value_range = f"Range: {min(flattened_values)}-{max(flattened_values)}"
+    flattened_values = [item for sublist in normalized_values for item in
+                        (sublist if isinstance(sublist, tuple) else [sublist])]
+    value_range = f"Range: {min(flattened_values)}-{max(flattened_values)}"
 
     if count > len(normalized_values) // 2:
       return "inconsistent_common", most_common_value, value_range
@@ -324,8 +344,7 @@ def handle_inconsistency(values, key, combined_errors, report_range=False):
 
 
 def extract_value(values, key, combined_errors, report_range=False, format_duration=False):
-  status, most_common_value, value_range = handle_inconsistency(values, key, combined_errors,
-                                                                report_range)
+  status, most_common_value, value_range = handle_inconsistency(values, key, combined_errors)
 
   if format_duration and isinstance(most_common_value, (int, float)):
     most_common_value = format_acquisition_duration(most_common_value)
@@ -372,7 +391,7 @@ def handle_pld_values(values, combined_errors):
   def format_pld_array(pld_array):
     pld_counter = Counter(pld_array)
     formatted_pld = ', '.join(
-      [f"{pld} ({count / 2} repetitions)" for pld, count in sorted(pld_counter.items())])
+      [f"{pld} ({count // 2} repetitions)" for pld, count in sorted(pld_counter.items())])
     return formatted_pld
 
   if status == "consistent":
@@ -430,6 +449,22 @@ def handle_bolus_cutoff_technique(values, key, combined_errors):
     return "(inconsistent, no common data)"
 
 
+def handle_bolus_cutoff_delay_time(values, combined_errors):
+  status, bolus_cutoff_delay_time, _ = handle_inconsistency(values, 'BolusCutOffDelayTime',
+                                                            combined_errors)
+  if status == "consistent":
+    if isinstance(bolus_cutoff_delay_time, (list, tuple)) and len(bolus_cutoff_delay_time) >= 2:
+      return f"from {bolus_cutoff_delay_time[0]} to {bolus_cutoff_delay_time[len(bolus_cutoff_delay_time) - 1]}"
+    elif isinstance(bolus_cutoff_delay_time, (list, tuple)):
+      return f"at {bolus_cutoff_delay_time[0]}"
+    else:
+      return f"at {bolus_cutoff_delay_time}"
+  elif status == "inconsistent_common":
+    return f"(inconsistent, {bolus_cutoff_delay_time} is the most common"
+  else:
+    return "(inconsistent, no common data)"
+
+
 def format_array(values):
   if not values:
     return ''
@@ -454,7 +489,7 @@ def format_acquisition_duration(duration):
   return 'N/A'
 
 
-def generate_report(values, combined_errors):
+def generate_report(values, combined_errors, slice_number):
   report_lines = []
 
   pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_errors)
@@ -477,6 +512,8 @@ def generate_report(values, combined_errors):
   asl_type = values.get('ArterialSpinLabelingType')[0][1]
   mr_acq_type = values.get('MRAcquisitionType')[0][1]
   pulse_seq_type = values.get('PulseSequenceType', 'N/A')[0][1]
+  if pulse_seq_type == "3Dgrase":
+    pulse_seq_type = "GRASE"
 
   echo_time = extract_value(values, "EchoTime", combined_errors)
   repetition_time = extract_value(values, "RepetitionTimePreparation", combined_errors)
@@ -488,7 +525,7 @@ def generate_report(values, combined_errors):
   bolus_cutoff_flag = handle_bolus_cutoff_flag(values, 'BolusCutOffFlag', combined_errors)
   bolus_cutoff_technique = handle_bolus_cutoff_technique(values, 'BolusCutOffTechnique',
                                                          combined_errors)
-  bolus_cutoff_delay_time = extract_value(values, "BolusCutOffDelayTime", combined_errors)
+  bolus_cutoff_delay_time = handle_bolus_cutoff_delay_time(values, combined_errors)
 
   background_suppression = handle_bolus_cutoff_flag(values, 'BackgroundSuppression',
                                                     combined_errors)
@@ -507,14 +544,14 @@ def generate_report(values, combined_errors):
   )
 
   report_lines.append(
-    f"{echo_time} TE ms, TR {repetition_time} ms, "
-    f" flip angle {flip_angle} degrees,"
+    f"TE = {echo_time} ms, TR = {repetition_time} ms, "
+    f"flip angle {flip_angle} degrees, "
   )
   report_lines.append(
     f"in-plane resolution {voxel_size_1_2} mm2, "
   )
   report_lines.append(
-    f"(TODO: number of slices) slices with {voxel_size_3} mm thickness, "
+    f"(TODO - read in NIfTI) slices with {voxel_size_3} mm thickness, "
   )
 
   # Additional lines for PCASL
@@ -541,29 +578,35 @@ def generate_report(values, combined_errors):
           f"using {bolus_cutoff_technique} pulse "
         )
         report_lines.append(
-          f"applied at {format_array(bolus_cutoff_delay_time)}"
-          f" ms after the labeling, "
+          f"applied {bolus_cutoff_delay_time} ms after the labeling, "
         )
 
   if background_suppression is not None:
-    report_lines.append(f"{background_suppression} background suppression ")
-    if background_suppression == "with":
-      report_lines.append(f"with {background_suppression_number_pulses} pulses ")
+    report_lines.append(f"{background_suppression} background suppression")
+    if background_suppression_number_pulses is not None and background_suppression_pulse_time is not None:
+      report_lines.append(f" with {background_suppression_number_pulses} pulses ")
       report_lines.append(
         f"at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
-
+    elif background_suppression_number_pulses is not None:
+      report_lines.append(
+        f" with {background_suppression_number_pulses} pulses.")
+    elif background_suppression_pulse_time is not None:
+      report_lines.append(
+        f" at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
+    else:
+      report_lines.append(".")
 
   # Additional lines for total pairs and acquisition duration
   report_lines.append(
-    f"In total, {total_acquired_pairs} control-label pairs were acquired "
+    f" In total, {total_acquired_pairs} control-label pairs were acquired"
   )
-  if (acquisition_duration != "N/A"):
-    report_lines.append(
-      f"in a {acquisition_duration} time."
-    )
+  if acquisition_duration is not "N/A":
+    report_lines.append(f" in a {acquisition_duration} time.")
+  else:
+    report_lines.append(".")
 
   # Join the lines into a single paragraph
-  report_paragraph = " ".join(line.strip() for line in report_lines)
+  report_paragraph = "".join(line for line in report_lines)
 
   print(report_paragraph)
 

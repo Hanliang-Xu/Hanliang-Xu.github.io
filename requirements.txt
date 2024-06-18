@@ -9,3 +9,6 @@ MarkupSafe==2.1.5
 packaging==24.0
 Werkzeug==3.0.3
 -e .
+
+nibabel~=5.2.1
+setuptools~=68.2.0

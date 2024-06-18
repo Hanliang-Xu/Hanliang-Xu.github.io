@@ -1,1 +1,14 @@
-{}
+{
+  "PLDType": [
+    "INCONSISTENCY: 'single-PLD' (3): ['sub-Sub103_asl.json', 'sub-Sub103_asl.json', 'sub-Sub103_asl.json']; 'multi-PLD' (2): ['sub-Sub1_asl.json', 'sub-Sub1_asl.json']"
+  ],
+  "ArterialSpinLabelingType": [
+    "INCONSISTENCY: 'PCASL' (4): ['sub-Sub103_asl.json', 'sub-Sub1_asl.json', 'sub-Sub103_asl.json', 'sub-Sub103_asl.json']; 'PASL' (1): ['sub-Sub1_asl.json']"
+  ],
+  "MRAcquisitionType": [
+    "INCONSISTENCY: '3D' (3): ['sub-Sub103_asl.json', 'sub-Sub1_asl.json', 'sub-Sub103_asl.json']; '2D' (2): ['sub-Sub1_asl.json', 'sub-Sub103_asl.json']"
+  ],
+  "PulseSequenceType": [
+    "INCONSISTENCY: 'spiral' (1): ['sub-Sub103_asl.json']; '3Dgrase' (2): ['sub-Sub1_asl.json', 'sub-Sub103_asl.json']; 'EPI' (2): ['sub-Sub1_asl.json', 'sub-Sub103_asl.json']"
+  ]
+}
