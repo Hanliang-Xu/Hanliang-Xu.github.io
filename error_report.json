@@ -1,0 +1,29 @@
+{
+  "TotalAcquiredPairs": [
+    "INCONSISTENCY: Values vary. Mode: 3, Median: 21.5, Range: (3, 48), 25-75 Percentile: (6.75, 38.25), Outliers: []"
+  ],
+  "AcquisitionVoxelSize": [
+    "INCONSISTENCY: Values in arrays vary more than allowed 0.1 at index 0. Values: [('sub-Sub103_asl.json', 4), ('sub-Sub1_asl.json', 3.4375), ('sub-Sub103_asl.json', 3.4), ('sub-Sub103_asl.json', 3.75)]"
+  ],
+  "LabelingDuration": [
+    "INCONSISTENCY: Values vary more than allowed 10. Mode: 1800, Median: 1625.0, Range: (1400, 1800), 25-75 Percentile: (1437.5, 1800.0), Outliers: []"
+  ],
+  "PostLabelingDelay": [
+    "INCONSISTENCY: Mixed single values and arrays. Single value sessions (3): ['sub-Sub103_asl.json', 'sub-Sub103_asl.json', 'sub-Sub103_asl.json'], Array sessions (1): ['sub-Sub1_asl.json']"
+  ],
+  "EchoTime": [
+    "INCONSISTENCY: Values vary more than allowed 0.1. Mode: 10.528, Median: 13.64, Range: (10.528, 15), 25-75 Percentile: (12.591999999999999, 14.25), Outliers: []"
+  ],
+  "RepetitionTimePreparation": [
+    "INCONSISTENCY: Values vary more than allowed 10. Mode: 4886, Median: 4728.8405, Range: (4050, 4950), 25-75 Percentile: (4441.2607499999995, 4902.0), Outliers: []"
+  ],
+  "FlipAngle": [
+    "INCONSISTENCY: Values vary more than allowed 1. Mode: 90, Median: 100.5, Range: (90, 130), 25-75 Percentile: (90.0, 115.75), Outliers: []"
+  ],
+  "BackgroundSuppressionNumberPulses": [
+    "INCONSISTENCY: Values vary. Mode: 4, Median: 3.0, Range: (2, 4), 25-75 Percentile: (2.0, 4.0), Outliers: []"
+  ],
+  "BackgroundSuppressionPulseTime": [
+    "INCONSISTENCY: Inconsistent array lengths. Unique lengths: {2: ['sub-Sub1_asl.json', 'sub-Sub103_asl.json'], 4: ['sub-Sub103_asl.json', 'sub-Sub103_asl.json']}"
+  ]
+}

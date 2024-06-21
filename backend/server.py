@@ -1,6 +1,5 @@
 import json
 import os
-from collections import Counter
 
 import nibabel as nib
 from flask import Flask, request, jsonify, send_file
@@ -35,6 +34,7 @@ def upload_files():
 
   files = request.files.getlist('json-files')
   filenames = request.form.getlist('filenames')
+  nifti_file = request.files.get('nii-file')
   if not files or not filenames:
     return jsonify({"error": "No selected files or filenames"}), 400
 
@@ -49,15 +49,21 @@ def upload_files():
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
 
-    if file.filename.endswith('.json'):
-      data, error = read_json(filepath)
-      if error:
-        return jsonify({"error": error, "filename": filename}), 400
-      json_arrays.append(data)
-    elif file.filename.endswith(('.nii', '.nii.gz')):
-      nifti_slice_number, error = read_nifti_file(filepath)
-      if error:
-        return jsonify({"error": error, "filename": filename}), 400
+    data, error = read_json(filepath)
+    if error:
+      return jsonify({"error": error, "filename": filename}), 400
+    json_arrays.append(data)
+
+  if not nifti_file.filename.endswith(('.nii', '.nii.gz')):
+    return jsonify({"error": f"Invalid file: {nifti_file.filename}"}), 400
+
+  nifti_filepath = os.path.join(UPLOAD_FOLDER, nifti_file.filename)
+  os.makedirs(os.path.dirname(nifti_filepath), exist_ok=True)
+  nifti_file.save(nifti_filepath)
+
+  nifti_slice_number, error = read_nifti_file(nifti_filepath)
+  if error:
+    return jsonify({"error": error, "filename": nifti_file.filename}), 400
 
   # Perform validation on the combined arrays
   (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
@@ -68,19 +74,20 @@ def upload_files():
   save_json(combined_errors, ERROR_REPORT)
   save_json(combined_warnings, WARNING_REPORT)
 
-  if not any(combined_major_errors.values()):
-    report = generate_report(combined_values, combined_errors, slice_number=nifti_slice_number)
+  inconsistency_errors = extract_inconsistencies(combined_errors_concise)
+  major_inconsistency_errors = extract_inconsistencies(combined_major_errors_concise)
+  warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
-    # Ensure report is a single string
-    if isinstance(report, list):
-      report_str = "".join(report)  # Use space to join for a single paragraph
-    else:
-      report_str = str(report)
+  report = generate_report(combined_values, combined_major_errors, combined_errors, slice_number=nifti_slice_number)
 
-    with open(FINAL_REPORT, 'w') as report_file:
-      report_file.write(report_str)
+  # Ensure report is a single string
+  if isinstance(report, list):
+    report_str = "".join(report)  # Use space to join for a single paragraph
   else:
-    report_str = "Major errors found, cannot generate report."
+    report_str = str(report)
+
+  with open(FINAL_REPORT, 'w') as report_file:
+    report_file.write(report_str)
 
   return jsonify({
     "major_errors": combined_major_errors,
@@ -90,7 +97,10 @@ def upload_files():
     "warnings": combined_warnings,
     "warnings_concise": combined_warnings_concise,
     "report": report_str,
-    "nifti_slice_number": nifti_slice_number
+    "nifti_slice_number": nifti_slice_number,
+    "inconsistencies": "".join(inconsistency_errors),
+    "major_inconsistencies": "".join(major_inconsistency_errors),
+    "warning_inconsistencies": "".join(warning_inconsistency_errors)
   }), 200
 
 
@@ -125,7 +135,7 @@ def save_json(data, filepath):
 def read_nifti_file(filepath):
   try:
     nifti_img = nib.load(filepath)
-    slice_number = nifti_img.shape[-1]
+    slice_number = nifti_img.shape[2]
     return slice_number, None
   except Exception as e:
     return None, str(e)
@@ -274,7 +284,7 @@ def validate_json_arrays(data, filenames):
         session[key] = convert_to_milliseconds(session[key])
     session['PLDType'] = determine_pld_type(session)
 
-  major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values\
+  major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values \
     = validator.validate(data, filenames)
   return (major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise,
           values)
@@ -440,7 +450,6 @@ def handle_string_inconsistency(values, key, combined_errors):
 
 def handle_bolus_cutoff_technique(values, key, combined_errors):
   status, technique = handle_string_inconsistency(values, key, combined_errors)
-  print(status, technique)
   if status == "consistent":
     return technique
   elif status == "inconsistent_common":
@@ -489,10 +498,10 @@ def format_acquisition_duration(duration):
   return 'N/A'
 
 
-def generate_report(values, combined_errors, slice_number):
+def generate_report(values, combined_major_errors, combined_errors, slice_number):
   report_lines = []
 
-  pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_errors)
+  pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_major_errors)
   total_acquired_pairs = extract_value(values, "TotalAcquiredPairs", combined_errors)
 
   pld_value = extract_value(values, 'PostLabelingDelay', combined_errors)
@@ -509,9 +518,10 @@ def generate_report(values, combined_errors, slice_number):
     basic_pld_text = pld_value
     extended_pld_text = pld_value
 
-  asl_type = values.get('ArterialSpinLabelingType')[0][1]
-  mr_acq_type = values.get('MRAcquisitionType')[0][1]
-  pulse_seq_type = values.get('PulseSequenceType', 'N/A')[0][1]
+  asl_type = extract_value(values, "ArterialSpinLabelingType", combined_major_errors)
+  mr_acq_type = extract_value(values, "MRAcquisitionType", combined_major_errors)
+  pulse_seq_type = extract_value(values, "PulseSequenceType", combined_major_errors)
+
   if pulse_seq_type == "3Dgrase":
     pulse_seq_type = "GRASE"
 
@@ -551,7 +561,7 @@ def generate_report(values, combined_errors, slice_number):
     f"in-plane resolution {voxel_size_1_2} mm2, "
   )
   report_lines.append(
-    f"(TODO - read in NIfTI) slices with {voxel_size_3} mm thickness, "
+    f"{slice_number} slices with {voxel_size_3} mm thickness, "
   )
 
   # Additional lines for PCASL
@@ -608,9 +618,26 @@ def generate_report(values, combined_errors, slice_number):
   # Join the lines into a single paragraph
   report_paragraph = "".join(line for line in report_lines)
 
-  print(report_paragraph)
-
   return report_paragraph
+
+
+def extract_inconsistencies(error_map):
+  inconsistency_errors = []
+  fields_to_remove = []
+
+  for field, errors in error_map.items():
+    for error in errors:
+      if "INCONSISTENCY" in error:
+        inconsistency_errors.append(f"{field}: {error.replace('INCONSISTENCY: ', '')}\n")
+        errors.remove(error)  # Remove the inconsistency error from the original list
+
+      if not errors:
+        fields_to_remove.append(field)
+
+  # Remove fields that have no errors left
+  for field in fields_to_remove:
+    del error_map[field]
+  return inconsistency_errors
 
 
 if __name__ == '__main__':

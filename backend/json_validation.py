@@ -79,7 +79,7 @@ class JSONValidator:
         consistency_validator = self.consistency_schema.get(field)
         if consistency_validator:
           (consistency_major_error, consistency_major_error_concise, consistency_error,
-           consistency_error_concise, consistency_warning, consistency_warning_concise)\
+           consistency_error_concise, consistency_warning, consistency_warning_concise) \
             = consistency_validator.validate(values_to_check)
           if consistency_major_error:
             aggregated_major_errors.append(consistency_major_error)
@@ -90,7 +90,6 @@ class JSONValidator:
           if consistency_warning:
             aggregated_warnings.append(consistency_warning)
             aggregated_warnings_concise.append(consistency_warning_concise)
-
 
       # Individual validation
       for value, filename in aggregated_data[field]:
@@ -104,7 +103,7 @@ class JSONValidator:
           aggregated_errors_concise.append((filename, error_concise))
         if warning:
           aggregated_warnings.append((filename, warning))
-          aggregated_warnings_concise.append((filename,warning_concise))
+          aggregated_warnings_concise.append((filename, warning_concise))
         aggregated_values.append((filename, value))
 
       if aggregated_major_errors:
@@ -117,6 +116,7 @@ class JSONValidator:
         warnings[field] = aggregated_warnings
         warnings_concise[field] = aggregated_warnings_concise
       values[field] = aggregated_values
+
 
   def should_apply_validation(self, data, condition):
     if condition == "all":
