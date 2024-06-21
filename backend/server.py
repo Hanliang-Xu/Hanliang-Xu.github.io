@@ -487,7 +487,7 @@ def format_background_suppression(values):
     elif len(values) == 2:
       return ' and '.join(f"{values}ms")
     else:
-      return ', '.join(f"{values[:-1]}ms") + ', and ' + f"{values[-1]}ms"
+      return 'ms, '.join(values[:-1]) + ', and ' + values[-1] + 'ms'
   else:
     return values
 
