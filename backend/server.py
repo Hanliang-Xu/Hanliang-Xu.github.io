@@ -597,10 +597,12 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
       report_lines.append(f" with {background_suppression_number_pulses} pulses ")
       report_lines.append(
         f"at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
-    elif background_suppression_number_pulses is not None:
+    elif (background_suppression_number_pulses is not None and background_suppression_number_pulses
+          != "N/A"):
       report_lines.append(
         f" with {background_suppression_number_pulses} pulses.")
-    elif background_suppression_pulse_time is not None:
+    elif (background_suppression_pulse_time is not None and background_suppression_pulse_time !=
+          "N/A"):
       report_lines.append(
         f" at {format_array(background_suppression_pulse_time)} ms after the start of labeling.")
     else:
