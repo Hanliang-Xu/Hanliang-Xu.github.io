@@ -465,13 +465,13 @@ def handle_bolus_cutoff_delay_time(values, combined_errors):
                                                             combined_errors)
   if status == "consistent":
     if isinstance(bolus_cutoff_delay_time, (list, tuple)) and len(bolus_cutoff_delay_time) >= 2:
-      return f"from {bolus_cutoff_delay_time[0]} to {bolus_cutoff_delay_time[len(bolus_cutoff_delay_time) - 1]}"
+      return f"from {bolus_cutoff_delay_time[0]}ms to {bolus_cutoff_delay_time[len(bolus_cutoff_delay_time) - 1]}ms"
     elif isinstance(bolus_cutoff_delay_time, (list, tuple)):
-      return f"at {bolus_cutoff_delay_time[0]}"
+      return f"at {bolus_cutoff_delay_time[0]}ms"
     else:
-      return f"at {bolus_cutoff_delay_time}"
+      return f"at {bolus_cutoff_delay_time}ms"
   elif status == "inconsistent_common":
-    return f"(inconsistent, {bolus_cutoff_delay_time} is the most common"
+    return f"(inconsistent, {bolus_cutoff_delay_time}ms is the most common"
   else:
     return "(inconsistent, no common data)"
 
@@ -515,7 +515,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     extended_pld_text = handle_pld_values(values, combined_errors)
   elif pld_type == "single-PLD":
     basic_pld_text = pld_value
-    extended_pld_text = pld_value
+    extended_pld_text = f"{pld_value}ms"
   else:
     basic_pld_text = pld_value
     extended_pld_text = pld_value
@@ -551,12 +551,12 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
 
   # Creating the report lines
   report_lines.append(
-    f"ASL was acquired with {pld_type} ms {asl_type} labeling and a "
+    f"ASL was acquired with {pld_type} {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters: "
   )
 
   report_lines.append(
-    f"TE = {echo_time} ms, TR = {repetition_time} ms, "
+    f"TE = {echo_time}ms, TR = {repetition_time}ms, "
     f"flip angle {flip_angle} degrees, "
   )
   report_lines.append(
@@ -569,10 +569,10 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
   # Additional lines for PCASL
   if asl_type == 'PCASL':
     report_lines.append(
-      f"labeling duration {labeling_duration} ms, "
+      f"labeling duration {labeling_duration}ms, "
     )
     report_lines.append(
-      f"PLD {extended_pld_text} ms, "
+      f"PLD {extended_pld_text}, "
     )
 
   # Additional lines for PASL
@@ -590,7 +590,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
           f"using {bolus_cutoff_technique} pulse "
         )
         report_lines.append(
-          f"applied {bolus_cutoff_delay_time} ms after the labeling, "
+          f"applied {bolus_cutoff_delay_time} after the labeling, "
         )
 
   if background_suppression is not None:
@@ -602,7 +602,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     if (background_suppression_pulse_time is not None and background_suppression_pulse_time !=
           "N/A"):
       report_lines.append(
-        f" at {format_array(background_suppression_pulse_time)} ms after the start of labeling")
+        f" at {format_array(background_suppression_pulse_time)}ms after the start of labeling")
     report_lines.append(".")
 
   # Additional lines for total pairs and acquisition duration
