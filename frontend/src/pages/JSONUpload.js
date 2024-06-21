@@ -41,7 +41,7 @@ function JSONUpload() {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
 
-                if (pathParts.length === 5 && pathParts[pathParts.length - 2] === 'perf' &&
+                if (pathParts[pathParts.length - 2] === 'perf' &&
                     (item.name.endsWith('asl.nii.gz') || item.name.endsWith('asl.nii'))) {
                     return item; // Return the first found .nii.gz or .nii file
                 }
