@@ -59,11 +59,11 @@ function App() {
                                     }
                                 }}
                             >
-                                <Tab label="Home" component={Link} to="/" />
+                                <Tab label="Home" component={Link} to="/json-upload" />
                                 <Tab label="Experience" component={Link} to="/experience" />
                                 <Tab label="Projects" component={Link} to="/projects" />
                                 <Tab label="Awards" component={Link} to="/awards" />
-                                <Tab label="JSON Upload" component={Link} to="/json-upload" />
+                                <Tab label="JSON Upload" component={Link} to="/" />
                             </Tabs>
                         </div>
                     </AppBar>
