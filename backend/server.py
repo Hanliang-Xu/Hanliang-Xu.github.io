@@ -401,7 +401,9 @@ def handle_pld_values(values, combined_errors):
   def format_pld_array(pld_array):
     pld_counter = Counter(pld_array)
     formatted_pld = ', '.join(
-      [f"{pld} ({count // 2} repetitions)" for pld, count in sorted(pld_counter.items())])
+      [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
+       sorted(pld_counter.items())]
+    )
     return formatted_pld
 
   if status == "consistent":
