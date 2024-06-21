@@ -59,21 +59,21 @@ function App() {
                                     }
                                 }}
                             >
-                                <Tab label="Home" component={Link} to="/json-upload" />
+                                <Tab label="Home" component={Link} to="/" />
                                 <Tab label="Experience" component={Link} to="/experience" />
                                 <Tab label="Projects" component={Link} to="/projects" />
                                 <Tab label="Awards" component={Link} to="/awards" />
-                                <Tab label="JSON Upload" component={Link} to="/" />
+                                <Tab label="JSON Upload" component={Link} to="/json-upload" />
                             </Tabs>
                         </div>
                     </AppBar>
 
                     <Routes>
-                        <Route path="/" element={<Home />} />
+                        <Route path="/json-upload" element={<Home />} />
                         <Route path="/projects" element={<Projects />} />
                         <Route path="/experience" element={<Experience />} />
                         <Route path="/awards" element={<Awards />} />
-                        <Route path="/json-upload" element={<JSONUpload />} />
+                        <Route path="/" element={<JSONUpload />} />
                     </Routes>
                 </div>
             </ThemeProvider>
