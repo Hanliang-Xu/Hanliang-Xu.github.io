@@ -513,7 +513,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     extended_pld_text = handle_pld_values(values, combined_errors)
   elif pld_type == "single-PLD":
     basic_pld_text = pld_value
-    extended_pld_text = f"{pld_value} ({total_acquired_pairs} repetition)"
+    extended_pld_text = pld_value
   else:
     basic_pld_text = pld_value
     extended_pld_text = pld_value
@@ -549,7 +549,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
 
   # Creating the report lines
   report_lines.append(
-    f"ASL was acquired with {pld_type} {basic_pld_text} ms {asl_type} labeling and a "
+    f"ASL was acquired with {pld_type} ms {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters: "
   )
 
