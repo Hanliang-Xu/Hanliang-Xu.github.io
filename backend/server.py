@@ -476,18 +476,18 @@ def handle_bolus_cutoff_delay_time(values, combined_errors):
     return "(inconsistent, no common data)"
 
 
-def format_array(values):
+def format_background_suppression(values):
   if not values:
     return ''
 
   if all(isinstance(val, (int, float)) for val in values):
     values = list(map(str, values))
     if len(values) == 1:
-      return values[0]
+      return f"{values[0]}ms"
     elif len(values) == 2:
-      return ' and '.join(values)
+      return ' and '.join(f"{values}ms")
     else:
-      return ', '.join(values[:-1]) + ', and ' + values[-1]
+      return ', '.join(f"{values[:-1]}ms") + ', and ' + f"{values[-1]}ms"
   else:
     return values
 
@@ -560,10 +560,10 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     f"flip angle {flip_angle} degrees, "
   )
   report_lines.append(
-    f"in-plane resolution {voxel_size_1_2} mm2, "
+    f"in-plane resolution {voxel_size_1_2}mm2, "
   )
   report_lines.append(
-    f"{slice_number} slices with {voxel_size_3} mm thickness, "
+    f"{slice_number} slices with {voxel_size_3}mm thickness, "
   )
 
   # Additional lines for PCASL
@@ -602,7 +602,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     if (background_suppression_pulse_time is not None and background_suppression_pulse_time !=
           "N/A"):
       report_lines.append(
-        f" at {format_array(background_suppression_pulse_time)}ms after the start of labeling")
+        f" at {format_background_suppression(background_suppression_pulse_time)} after the start of labeling")
     report_lines.append(".")
 
   # Additional lines for total pairs and acquisition duration
