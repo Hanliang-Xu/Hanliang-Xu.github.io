@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
