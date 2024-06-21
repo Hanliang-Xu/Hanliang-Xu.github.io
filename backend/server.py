@@ -483,9 +483,9 @@ def format_background_suppression(values):
   if all(isinstance(val, (int, float)) for val in values):
     values = list(map(str, values))
     if len(values) == 1:
-      return f"{values[0]}ms"
+      return values[0] + 'ms'
     elif len(values) == 2:
-      return ' and '.join(f"{values}ms")
+      return 'ms and '.join(values) + 'ms'
     else:
       return 'ms, '.join(values[:-1]) + ', and ' + values[-1] + 'ms'
   else:
