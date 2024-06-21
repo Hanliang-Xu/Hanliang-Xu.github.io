@@ -594,9 +594,6 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
   if background_suppression is not None:
     report_lines.append(f"{background_suppression} background suppression")
     if (background_suppression_number_pulses is not None and background_suppression_number_pulses
-        != "N/A"):
-      report_lines.append(f" with {background_suppression_number_pulses} pulses")
-    if (background_suppression_number_pulses is not None and background_suppression_number_pulses
           != "N/A"):
       report_lines.append(
         f" with {background_suppression_number_pulses} pulses")
