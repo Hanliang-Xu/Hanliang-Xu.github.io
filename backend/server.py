@@ -578,7 +578,7 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
   # Additional lines for PASL
   if asl_type.upper() == 'PASL':
     report_lines.append(
-      f"inversion time {extended_pld_text} ms, "
+      f"inversion time {extended_pld_text}, "
     )
 
     if bolus_cutoff_flag is not None:
