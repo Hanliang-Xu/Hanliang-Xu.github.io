@@ -30,8 +30,7 @@ function JSONUpload() {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
 
-                if (pathParts.length === 5 && pathParts[pathParts.length - 2] === 'perf' &&
-                    (item.name.endsWith('asl.json'))) {
+                if (pathParts[pathParts.length - 2] === 'perf' && (item.name.endsWith('asl.json'))) {
                     jsonFiles.push(item);
                 }
             }
@@ -176,8 +175,8 @@ function JSONUpload() {
                     into the Methods section of paper. The program will validate the ASL datasets by
                     checking for inconsistencies, invalid values, and providing warnings for slight
                     variations. Please ensure that your dataset is organized according to the BIDS
-                    standard before uploading. This looks something like: /study/session/subject/perf/xxx_asl.json. And you select the study folder to upload. Here are some
-                    sample folders for you to download and test: https://drive.google.com/drive/folders/1NuG_ofLbaLYswNlBN2aRDkxLOucYFQfg?usp=sharing
+                    standard before uploading. Here are some sample folders for you to download and test:
+                    https://drive.google.com/drive/folders/1NuG_ofLbaLYswNlBN2aRDkxLOucYFQfg?usp=sharing
                 </Typography>
                 <Typography variant="body1" mt={2}>
                     <strong>Steps:</strong>
@@ -187,8 +186,8 @@ function JSONUpload() {
                     ASL data.
                 </Typography>
                 <Typography variant="body1" mt={1}>
-                    2. The application will process your files (including asl.json and asl.nii or
-                    asl.nii.gz) and display the results below.
+                    2. The application will process your files (including xxx_asl.json and xxx_asl.nii or
+                    xxx_asl.nii.gz) and display the results below.
                 </Typography>
                 <Typography variant="body1" mt={1}>
                     <strong>Note:</strong> The following specific checks and summaries will
