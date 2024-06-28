@@ -5,8 +5,8 @@ import nibabel as nib
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from backend.json_validation import JSONValidator
-from backend.validator import *
+from json_validation import JSONValidator
+from validator import *
 
 app = Flask(__name__)
 CORS(app)
@@ -29,30 +29,45 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-  if 'json-files' not in request.files or 'filenames' not in request.form:
+  if 'files' not in request.files or 'filenames' not in request.form:
     return jsonify({"error": "No file part"}), 400
 
-  files = request.files.getlist('json-files')
+  files = request.files.getlist('files')
   filenames = request.form.getlist('filenames')
   nifti_file = request.files.get('nii-file')
+
   if not files or not filenames:
     return jsonify({"error": "No selected files or filenames"}), 400
 
-  json_arrays = []
-  nifti_slice_number = None
+  grouped_files = []
+  current_group = {'asl_json': None, 'm0_json': None, 'tsv': None}
 
+  # Populate grouped_files by iterating over the files once
   for file, filename in zip(files, filenames):
-    if not file.filename.endswith(('.json', '.nii', '.nii.gz')):
+    if not file.filename.endswith(('.json', '.tsv')):
       return jsonify({"error": f"Invalid file: {file.filename}"}), 400
 
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     file.save(filepath)
 
-    data, error = read_json(filepath)
+    data, error = read_file(filepath)
     if error:
       return jsonify({"error": error, "filename": filename}), 400
-    json_arrays.append(data)
+
+    if filename.endswith('asl.json'):
+      # Start a new group if an asl.json is encountered
+      if current_group['asl_json']:
+        grouped_files.append(current_group)
+      current_group = {'asl_json': (filename, data), 'm0_json': None, 'tsv': None}
+    elif filename.endswith('m0scan.json'):
+      current_group['m0_json'] = (filename, data)
+    elif filename.endswith('.tsv'):
+      current_group['tsv'] = (filename, data)
+
+  # Append the last group if it contains an asl.json
+  if current_group['asl_json']:
+    grouped_files.append(current_group)
 
   if not nifti_file.filename.endswith(('.nii', '.nii.gz')):
     return jsonify({"error": f"Invalid file: {nifti_file.filename}"}), 400
@@ -65,10 +80,101 @@ def upload_files():
   if error:
     return jsonify({"error": error, "filename": nifti_file.filename}), 400
 
+  # Arrays to hold the filenames and data of asl_json files
+  asl_json_filenames = []
+  asl_json_data = []
+  m0_prep_times_collection = []
+
+  # Iterate over the grouped_files to extract asl_json files
+  discrepancies = []
+  all_absent = True
+  bs_all_off = True
+  for group in grouped_files:
+    if group['asl_json'] is not None:
+      asl_filename, asl_data = group['asl_json']
+      asl_json_filenames.append(asl_filename)
+      if asl_data.get("M0Type", []) != "Absent":
+        all_absent = False
+      if asl_data.get("BackgroundSuppression", []):
+        bs_all_off = False
+
+      if group['m0_json'] is not None:
+        all_absent = False
+        m0_filename, m0_data = group['m0_json']
+        # Extract parameters
+        params_asl = {
+          "EchoTime": asl_data.get("EchoTime"),
+          "FlipAngle": asl_data.get("FlipAngle"),
+          "MagneticFieldStrength": asl_data.get("MagneticFieldStrength"),
+          "MRAcquisitionType": asl_data.get("MRAcquisitionType"),
+          "PulseSequenceType": asl_data.get("PulseSequenceType")
+        }
+        params_m0 = {
+          "EchoTime": m0_data.get("EchoTime"),
+          "FlipAngle": m0_data.get("FlipAngle"),
+          "MagneticFieldStrength": m0_data.get("MagneticFieldStrength"),
+          "MRAcquisitionType": m0_data.get("MRAcquisitionType"),
+          "PulseSequenceType": m0_data.get("PulseSequenceType")
+        }
+        # Compare parameters
+        for param, asl_value in params_asl.items():
+          m0_value = params_m0.get(param)
+          if isinstance(asl_value, float) and isinstance(m0_value, float):
+            tolerance = 1e-6
+            if abs(asl_value - m0_value) > tolerance:
+              discrepancies.append(
+                f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': ASL value = {asl_value}, M0 value = {m0_value}")
+          else:
+            if asl_value != m0_value:
+              discrepancies.append(
+                f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': ASL value = {asl_value}, M0 value = {m0_value}")
+        m0_prep_time = m0_data.get("RepetitionTimePreparation", [])
+        m0_prep_times_collection.append(m0_prep_time)
+
+      if group['tsv'] is not None:
+        all_absent = False
+        if asl_data.get("M0Type", []) != "Separate":
+          tsv_filename, tsv_data = group['tsv']
+          m0scan_count = sum(1 for line in tsv_data if line.strip() == "m0scan")
+          repetition_times = asl_data.get("RepetitionTimePreparation", [])
+          if len(repetition_times) > m0scan_count:
+            # Eliminate the same number of values from the start
+            m0_prep_times_collection.append(repetition_times[:m0scan_count])
+            modified_prep_times = repetition_times[m0scan_count:]
+            asl_data["RepetitionTimePreparation"] = modified_prep_times
+          elif len(repetition_times) < m0scan_count:
+            discrepancies.append(
+              f"Error: 'RepetitionTimePreparation' array in ASL file '{asl_filename}' is shorter than the number of 'm0scan' in TSV file '{tsv_filename}'"
+            )
+      asl_json_data.append(asl_data)
+
+
+  M0_TR = None
+  if m0_prep_times_collection:
+    if all(x == m0_prep_times_collection[0] for x in m0_prep_times_collection):
+      M0_TR = m0_prep_times_collection[0]
+    else:
+      discrepancies.append("Different \"RepetitionTimePreparation\" parameters for M0")
+
+  if all_absent and bs_all_off:
+    report_line_on_M0 = "No m0-scan was acquired, a control image without background suppression was used for M0 estimation."
+  elif all_absent and not bs_all_off:
+    report_line_on_M0 = "No m0-scan was acquired, but there doesn't always exist a control image without background suppression."
+  else:
+    if not discrepancies:
+      report_line_on_M0 = "M0 was acquired with the same readout and without background suppression."
+    else:
+      report_line_on_M0 = "There is inconsistency in parameters between M0 and ASL scans."
+
   # Perform validation on the combined arrays
   (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
    combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
-    json_arrays, filenames)
+    asl_json_data, asl_json_filenames)
+
+  if discrepancies:
+    mapped_discrepancies = {"m0_error": discrepancies}
+    combined_errors.update(mapped_discrepancies)
+    combined_errors_concise.update(mapped_discrepancies)
 
   save_json(combined_major_errors, MAJOR_ERROR_REPORT)
   save_json(combined_errors, ERROR_REPORT)
@@ -78,7 +184,8 @@ def upload_files():
   major_inconsistency_errors = extract_inconsistencies(combined_major_errors_concise)
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
-  report = generate_report(combined_values, combined_major_errors, combined_errors, slice_number=nifti_slice_number)
+  report = generate_report(combined_values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR,
+                           slice_number=nifti_slice_number)
 
   # Ensure report is a single string
   if isinstance(report, list):
@@ -118,11 +225,22 @@ def download_report():
   return jsonify({"error": "Invalid report type"}), 400
 
 
-def read_json(file_path):
+def read_file(file_path):
   try:
-    with open(file_path, 'r') as file:
-      data = json.load(file)
-    return data, None
+    if file_path.endswith('.json'):
+      with open(file_path, 'r') as file:
+        data = json.load(file)
+      return data, None
+    elif file_path.endswith('.tsv'):
+      with open(file_path, 'r') as file:
+        lines = file.readlines()
+      header = lines[0].strip()
+      if header != 'volume_type':
+        return None, "Invalid TSV header, not \"volume_type\""
+      data = [line.strip() for line in lines[1:]]
+      return data, None
+    else:
+      return None, "Unsupported file format"
   except Exception as e:
     return None, f"Error reading file: {str(e)}"
 
@@ -193,7 +311,10 @@ def validate_json_arrays(data, filenames):
     "BolusCutOffDelayTime": NumberOrNumberArrayValidator(),
     "EchoTime": NumberOrNumberArrayValidator(),
     "RepetitionTimePreparation": NumberOrNumberArrayValidator(),
-    "FlipAngle": NumberValidator(min_error=0, max_error_include=360)
+    "FlipAngle": NumberValidator(min_error=0, max_error_include=360),
+    "MagneticFieldStrength": NumberValidator(),
+    "Manufacturer": StringValidator(),
+    "ManufacturersModelName": StringValidator()
   }
   required_condition_schema = {
     "BackgroundSuppression": "all",
@@ -207,7 +328,10 @@ def validate_json_arrays(data, filenames):
     "BolusCutOffDelayTime": {"ArterialSpinLabelingType": "PASL"},
     "EchoTime": "all",
     "RepetitionTimePreparation": "all",
-    "FlipAngle": "all"
+    "FlipAngle": "all",
+    "MagneticFieldStrength": "all",
+    "Manufacturer": "all",
+    "ManufacturersModelName": "all"
   }
   recommended_validator_schema = {
     "BackgroundSuppressionNumberPulses": NumberValidator(min_error_include=0),
@@ -269,7 +393,10 @@ def validate_json_arrays(data, filenames):
     "BackgroundSuppressionNumberPulses": ConsistencyValidator(type="floatOrArray"),
     "BackgroundSuppressionPulseTime": ConsistencyValidator(type="floatOrArray"),
     "TotalAcquiredPairs": ConsistencyValidator(type="floatOrArray"),
-    "AcquisitionDuration": ConsistencyValidator(type="floatOrArray")
+    "AcquisitionDuration": ConsistencyValidator(type="floatOrArray"),
+    "MagneticFieldStrength": ConsistencyValidator(type="floatOrArray"),
+    "Manufacturer": ConsistencyValidator(type="string", is_major=False),
+    "M0Type": ConsistencyValidator(type="string", is_major=False)
   }
 
   validator = JSONValidator(major_error_schema, required_validator_schema,
@@ -500,7 +627,26 @@ def format_acquisition_duration(duration):
   return 'N/A'
 
 
-def generate_report(values, combined_major_errors, combined_errors, slice_number):
+def extract_and_format_unique_string_values(values, key):
+  # Extract all values for the given key
+  key_values = [entry[1] for entry in values.get(key, [])]
+
+  # Normalize values to ensure they are strings
+  normalized_values = [str(val) for val in key_values]
+
+  # Count the occurrences of each unique value
+  value_counter = Counter(normalized_values)
+
+  # Sort the unique values by frequency (highest first)
+  sorted_unique_values = [val for val, count in value_counter.most_common()]
+
+  # Join the unique values with a separator ("/")
+  formatted_values = "/".join(sorted_unique_values)
+
+  return formatted_values
+
+
+def generate_report(values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR, slice_number):
   report_lines = []
 
   pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_major_errors)
@@ -520,6 +666,10 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
     basic_pld_text = pld_value
     extended_pld_text = pld_value
 
+  magnetic_field_strength = extract_value(values, "MagneticFieldStrength", combined_errors)
+  manufacturer = extract_value(values, "Manufacturer", combined_errors)
+  manufacturers_model_name = extract_and_format_unique_string_values(values,
+                                                                     "ManufacturersModelName")
   asl_type = extract_value(values, "ArterialSpinLabelingType", combined_major_errors)
   mr_acq_type = extract_value(values, "MRAcquisitionType", combined_major_errors)
   pulse_seq_type = extract_value(values, "PulseSequenceType", combined_major_errors)
@@ -551,7 +701,8 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
 
   # Creating the report lines
   report_lines.append(
-    f"ASL was acquired with {pld_type} {asl_type} labeling and a "
+    f"ASL was acquired with on a {magnetic_field_strength}T {manufacturer}"
+    f" {manufacturers_model_name} scanner using {pld_type} {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters: "
   )
 
@@ -596,11 +747,11 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
   if background_suppression is not None:
     report_lines.append(f"{background_suppression} background suppression")
     if (background_suppression_number_pulses is not None and background_suppression_number_pulses
-          != "N/A"):
+        != "N/A"):
       report_lines.append(
         f" with {background_suppression_number_pulses} pulses")
     if (background_suppression_pulse_time is not None and background_suppression_pulse_time !=
-          "N/A"):
+        "N/A"):
       report_lines.append(
         f" at {format_background_suppression(background_suppression_pulse_time)} after the start of labeling")
     report_lines.append(".")
@@ -609,10 +760,14 @@ def generate_report(values, combined_major_errors, combined_errors, slice_number
   report_lines.append(
     f" In total, {total_acquired_pairs} control-label pairs were acquired"
   )
-  if acquisition_duration is not "N/A":
+  if acquisition_duration != "N/A":
     report_lines.append(f" in a {acquisition_duration} time.")
   else:
     report_lines.append(".")
+
+  report_lines.append(f" {report_line_on_M0}")
+  if M0_TR:
+    report_lines.append(f" TR for M0 is {M0_TR}.")
 
   # Join the lines into a single paragraph
   report_paragraph = "".join(line for line in report_lines)
