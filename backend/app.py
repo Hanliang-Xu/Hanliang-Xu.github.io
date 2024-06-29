@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from backend.routes import upload_routes, download_routes, home_routes
-from utils.config_loader import load_config
+from backend.utils.config_loader import load_config
 
 app = Flask(__name__)
 CORS(app)
