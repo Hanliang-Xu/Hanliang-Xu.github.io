@@ -6,7 +6,7 @@ from backend.utils.config_loader import load_config
 app = Flask(__name__)
 CORS(app)
 
-config = load_config('config.yaml')
+config = load_config('backend/config.yaml')
 
 app.config.update(config)
 
