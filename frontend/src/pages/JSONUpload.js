@@ -2,6 +2,8 @@ import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
 
 const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
+//const API_BASE_URL = 'http://127.0.0.1:8000';
+
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
@@ -22,26 +24,49 @@ function JSONUpload() {
     const [copySuccess, setCopySuccess] = useState('');
 
     const handleDirectoryUpload = async (event) => {
-        const files = event.target.files;
-        const jsonFiles = [];
+        const files = Array.from(event.target.files);
 
-        const findJSONFiles = (items) => {
+        // Function to find relevant JSON and TSV files
+        const findRelevantFiles = (items) => {
+            const relevantFiles = [];
+
+            // Helper function to find file by name in the given folder
+            const findFileInFolder = (folderItems, fileName) => {
+                return folderItems.find(item => item.name.endsWith(fileName));
+            };
+
             for (const item of items) {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
+                const parentFolder = pathParts[pathParts.length - 2];
 
-                if (pathParts[pathParts.length - 2] === 'perf' && (item.name.endsWith('asl.json'))) {
-                    jsonFiles.push(item);
+                if (parentFolder === 'perf' && item.name.endsWith('asl.json')) {
+                    // Find related files in the same folder
+                    const folderItems = items.filter(i => i.webkitRelativePath.startsWith(relativePath.replace(/[^/]+$/, '')));
+                    const m0scanFile = findFileInFolder(folderItems, 'm0scan.json');
+                    const aslcontextFile = findFileInFolder(folderItems, 'aslcontext.tsv');
+
+                    relevantFiles.push(item);  // Push asl.json
+                    if (m0scanFile) {
+                        relevantFiles.push(m0scanFile);  // Push m0scan.json if it exists
+                    }
+                    if (aslcontextFile) {
+                        relevantFiles.push(aslcontextFile);  // Push aslcontext.tsv if it exists
+                    }
                 }
             }
+
+            return relevantFiles;
         };
 
+        // Function to find the .nii or .nii.gz file in the perf folder
         const findNiiFile = (items) => {
             for (const item of items) {
                 const relativePath = item.webkitRelativePath || item.relativePath;
                 const pathParts = relativePath.split('/');
+                const parentFolder = pathParts[pathParts.length - 2];
 
-                if (pathParts[pathParts.length - 2] === 'perf' &&
+                if (parentFolder === 'perf' &&
                     (item.name.endsWith('asl.nii.gz') || item.name.endsWith('asl.nii'))) {
                     return item; // Return the first found .nii.gz or .nii file
                 }
@@ -49,23 +74,20 @@ function JSONUpload() {
             return null;
         };
 
-        findJSONFiles(files);
-
+        // Main logic
         const niiFile = findNiiFile(files);
         if (!niiFile) {
             setUploadError("No .nii.gz or .nii files found in the selected folder directly under the /perf/ directory ending with 'asl.nii.gz' or 'asl.nii'.");
             return;
         }
 
-        if (jsonFiles.length === 0) {
-            setUploadError("No JSON files found in the selected folder directly under the /perf/ directory ending with 'asl.json'.");
-            return;
-        }
-
+        const relevantFiles = findRelevantFiles(files);
         const formData = new FormData();
         formData.append('nii-file', niiFile);
-        jsonFiles.forEach(file => {
-            formData.append('json-files', file);
+
+
+        relevantFiles.forEach(file => {
+            formData.append('files', file);
             formData.append('filenames', file.name);
         });
 
@@ -175,7 +197,8 @@ function JSONUpload() {
                     into the Methods section of paper. The program will validate the ASL datasets by
                     checking for inconsistencies, invalid values, and providing warnings for slight
                     variations. Please ensure that your dataset is organized according to the BIDS
-                    standard before uploading. Here are some sample folders for you to download and test:
+                    standard before uploading. Here are some sample folders for you to download and
+                    test:
                     https://drive.google.com/drive/folders/1NuG_ofLbaLYswNlBN2aRDkxLOucYFQfg?usp=sharing
                 </Typography>
                 <Typography variant="body1" mt={2}>
@@ -186,7 +209,8 @@ function JSONUpload() {
                     ASL data.
                 </Typography>
                 <Typography variant="body1" mt={1}>
-                    2. The application will process your files (including xxx_asl.json and xxx_asl.nii or
+                    2. The application will process your files (including xxx_asl.json and
+                    xxx_asl.nii or
                     xxx_asl.nii.gz) and display the results below.
                 </Typography>
                 <Typography variant="body1" mt={1}>
@@ -211,7 +235,8 @@ function JSONUpload() {
                     - <strong>Generated Report:</strong> The software generates an ASL parameter
                     report to be included in the Methods section of paper. A suggested statement for
                     inclusion in the cover letter explaining that the relevant part of the Methods
-                    section has been constructed according to standard format is also provided (TODO).
+                    section has been constructed according to standard format is also provided
+                    (TODO).
                 </Typography>
             </Box>
 

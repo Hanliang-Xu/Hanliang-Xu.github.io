@@ -1,0 +1,276 @@
+# Server configuration
+server:
+  host: '127.0.0.1'
+  port: 8000
+
+# File paths
+paths:
+  upload_folder: 'uploads'
+  major_error_report: 'major_error_report.json'
+  error_report: 'error_report.json'
+  warning_report: 'warning_report.json'
+  final_report: 'report.txt'
+
+# Allowed file types
+allowed_file_types:
+  - '.json'
+  - '.tsv'
+  - '.nii'
+  - '.nii.gz'
+
+# Validation Schemas
+schemas:
+  major_error_schema:
+    PLDType:
+      type: "StringValidator"
+      allowed_values: ["multi-PLD", "single-PLD"]
+      major_error: true
+    ArterialSpinLabelingType:
+      type: "StringValidator"
+      allowed_values: ["PASL", "(P)CASL", "PCASL", "CASL"]
+      major_error: true
+    MRAcquisitionType:
+      type: "StringValidator"
+      allowed_values: ["2D", "3D"]
+      major_error: true
+    PulseSequenceType:
+      type: "StringValidator"
+      major_error: true
+
+  required_validator_schema:
+    BackgroundSuppression:
+      type: "BooleanValidator"
+    M0Type:
+      type: "StringValidator"
+    TotalAcquiredPairs:
+      type: "NumberValidator"
+      min_error: 0
+      enforce_integer: true
+    AcquisitionVoxelSize:
+      type: "NumberArrayValidator"
+      size_error: 3
+    LabelingDuration:
+      type: "NumberOrNumberArrayValidator"
+    PostLabelingDelay:
+      type: "NumberOrNumberArrayValidator"
+    BolusCutOffFlag:
+      type: "BooleanValidator"
+    BolusCutOffTechnique:
+      type: "StringValidator"
+    BolusCutOffDelayTime:
+      type: "NumberOrNumberArrayValidator"
+    EchoTime:
+      type: "NumberOrNumberArrayValidator"
+    RepetitionTimePreparation:
+      type: "NumberOrNumberArrayValidator"
+    FlipAngle:
+      type: "NumberValidator"
+      min_error: 0
+      max_error_include: 360
+    MagneticFieldStrength:
+      type: "NumberValidator"
+    Manufacturer:
+      type: "StringValidator"
+    ManufacturersModelName:
+      type: "StringValidator"
+
+  required_condition_schema:
+    BackgroundSuppression: "all"
+    M0Type: "all"
+    TotalAcquiredPairs: "all"
+    AcquisitionVoxelSize: "all"
+    LabelingDuration:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    PostLabelingDelay:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL", "PASL"]
+    BolusCutOffFlag:
+      ArterialSpinLabelingType:
+        "PASL"
+    BolusCutOffTechnique:
+      ArterialSpinLabelingType:
+        "PASL"
+    BolusCutOffDelayTime:
+      ArterialSpinLabelingType:
+        "PASL"
+    EchoTime: "all"
+    RepetitionTimePreparation: "all"
+    FlipAngle: "all"
+    MagneticFieldStrength: "all"
+    Manufacturer: "all"
+    ManufacturersModelName: "all"
+
+  recommended_validator_schema:
+    BackgroundSuppressionNumberPulses:
+      type: "NumberValidator"
+      min_error_include: 0
+    BackgroundSuppressionPulseTime:
+      type: "NumberArrayValidator"
+      min_error: 0
+    LabelingLocationDescription:
+      type: "StringValidator"
+    VascularCrushingVENC:
+      type: "NumberOrNumberArrayValidator"
+      min_error_include: 0
+    PCASLType:
+      type: "StringValidator"
+      allowed_values: ["balanced", "unbalanced"]
+    CASLType:
+      type: "StringValidator"
+      allowed_values: ["single-coil", "double-coil"]
+    LabelingDistance:
+      type: "NumberValidator"
+    LabelingPulseAverageGradient:
+      type: "NumberValidator"
+      min_error: 0
+    LabelingPulseMaximumGradient:
+      type: "NumberValidator"
+      min_error: 0
+    LabelingPulseAverageB1:
+      type: "NumberValidator"
+      min_error: 0
+    LabelingPulseFlipAngle:
+      type: "NumberValidator"
+      min_error: 0
+      max_error_include: 360
+    LabelingPulseInterval:
+      type: "NumberValidator"
+      min_error: 0
+    LabelingPulseDuration:
+      type: "NumberValidator"
+      min_error: 0
+    PASLType:
+      type: "StringValidator"
+    LabelingSlabThickness:
+      type: "NumberValidator"
+      min_error_include: 0
+    AcquisitionDuration:
+      type: "NumberValidator"
+
+  recommended_condition_schema:
+    BackgroundSuppressionNumberPulses:
+      BackgroundSuppression:
+        True
+    BackgroundSuppressionPulseTime:
+      BackgroundSuppression:
+        True
+    LabelingLocationDescription: "all"
+    VascularCrushingVENC:
+      VascularCrushing:
+        True
+    PCASLType:
+      ArterialSpinLabelingType:
+        "PCASL"
+    CASLType:
+      ArterialSpinLabelingType:
+        "CASL"
+    LabelingDistance: "all"
+    LabelingPulseAverageGradient:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    LabelingPulseMaximumGradient:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    LabelingPulseAverageB1:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    LabelingPulseFlipAngle:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    LabelingPulseInterval:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    LabelingPulseDuration:
+      ArterialSpinLabelingType:
+        ["PCASL", "CASL"]
+    PASLType:
+      ArterialSpinLabelingType:
+        "PASL"
+    LabelingSlabThickness:
+      ArterialSpinLabelingType:
+        "PASL"
+    AcquisitionDuration: "all"
+
+  consistency_schema:
+    PLDType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: true
+    ArterialSpinLabelingType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: true
+    MRAcquisitionType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: true
+    PulseSequenceType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: true
+    EchoTime:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 0.1
+      warning_variation: 0.0001
+    RepetitionTimePreparation:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 10
+      warning_variation: 0.1
+    LabelingDuration:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 10
+      warning_variation: 0.1
+    BackgroundSuppression:
+      type: "ConsistencyValidator"
+      validation_type: "boolean"
+    AcquisitionVoxelSize:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 0.1
+      warning_variation: 0.001
+    FlipAngle:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 1
+      warning_variation: 0.01
+    PostLabelingDelay:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      error_variation: 10
+      warning_variation: 0.01
+    BolusCutOffFlag:
+      type: "ConsistencyValidator"
+      validation_type: "boolean"
+    BolusCutOffTechnique:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+    BolusCutOffDelayTime:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    BackgroundSuppressionNumberPulses:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    BackgroundSuppressionPulseTime:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    TotalAcquiredPairs:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    AcquisitionDuration:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    MagneticFieldStrength:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+    Manufacturer:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: false
+    M0Type:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: false

@@ -1,1 +1,5 @@
-{}
+{
+  "AcquisitionVoxelSize": [
+    "INCONSISTENCY: Values in arrays vary slightly within 0.001 at index 2. Values: [('sub-Sub103_asl.json', 4.01), ('sub-Sub103_asl.json', 4)]"
+  ]
+}

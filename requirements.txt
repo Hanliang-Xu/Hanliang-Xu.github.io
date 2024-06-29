@@ -12,3 +12,4 @@ Werkzeug==3.0.3
 
 nibabel~=5.2.1
 setuptools~=68.2.0
+PyYAML
