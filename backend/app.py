@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from routes import upload_routes, download_routes, home_routes
+from backend.routes import upload_routes, download_routes, home_routes
 from utils.config_loader import load_config
 
 app = Flask(__name__)
