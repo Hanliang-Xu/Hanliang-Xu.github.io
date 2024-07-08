@@ -1,11 +1,1 @@
-{
-  "PLDType": [
-    "INCONSISTENCY: 'single-PLD' (3): ['sub-Sub103_asl.json', 'sub-Sub103_asl.json', 'sub-Sub103_asl.json']; 'multi-PLD' (1): ['sub-Sub1_asl.json']"
-  ],
-  "MRAcquisitionType": [
-    "INCONSISTENCY: '3D' (2): ['sub-Sub103_asl.json', 'sub-Sub103_asl.json']; '2D' (2): ['sub-Sub1_asl.json', 'sub-Sub103_asl.json']"
-  ],
-  "PulseSequenceType": [
-    "INCONSISTENCY: 'spiral' (1): ['sub-Sub103_asl.json']; 'EPI' (2): ['sub-Sub1_asl.json', 'sub-Sub103_asl.json']; '3Dgrase' (1): ['sub-Sub103_asl.json']"
-  ]
-}
+{}

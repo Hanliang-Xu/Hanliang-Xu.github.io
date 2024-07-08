@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
 
-const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
+//const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
 //const API_BASE_URL = 'http://127.0.0.1:8000';
-
+const API_BASE_URL = 'https://rock-sublime-428805-r3.uc.r.appspot.com';
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);

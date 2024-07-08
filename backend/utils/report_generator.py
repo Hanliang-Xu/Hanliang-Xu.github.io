@@ -1,23 +1,15 @@
 from collections import Counter
 
 
-def generate_report(values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR,
+def generate_report(values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs,
                     slice_number):
   report_lines = []
 
   pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_major_errors)
-  total_acquired_pairs = extract_value(values, "TotalAcquiredPairs", combined_errors)
+  #total_acquired_pairs = extract_value(values, "TotalAcquiredPairs", combined_errors)
 
   pld_value = extract_value(values, 'PostLabelingDelay', combined_errors)
-  if pld_type == "multi-PLD":
-    if 'inconsistent' not in pld_value:
-      extended_pld_text = handle_pld_values(values, combined_errors)
-    else:
-      extended_pld_text = pld_value
-  elif pld_type == "single-PLD":
-    extended_pld_text = f"{pld_value}ms"
-  else:
-    extended_pld_text = pld_value
+  extended_pld_text = handle_pld_values(values, combined_errors, 'PostLabelingDelay')
 
   magnetic_field_strength = extract_value(values, "MagneticFieldStrength", combined_errors)
   manufacturer = extract_value(values, "Manufacturer", combined_errors)
@@ -31,7 +23,8 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
     pulse_seq_type = "GRASE"
 
   echo_time = extract_value(values, "EchoTime", combined_errors)
-  repetition_time = extract_value(values, "RepetitionTimePreparation", combined_errors)
+  repetition_time = handle_pld_values(values, combined_errors, 'RepetitionTimePreparation')
+
   flip_angle = extract_value(values, "FlipAngle", combined_errors)
   labeling_duration = extract_value(values, "LabelingDuration", combined_errors)
 
@@ -59,7 +52,7 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
   )
 
   report_lines.append(
-    f"TE = {echo_time}ms, TR = {repetition_time}ms, "
+    f"TE = {echo_time}ms, TR = {repetition_time}, "
     f"flip angle {flip_angle} degrees, "
   )
   report_lines.append(
@@ -105,7 +98,7 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
     report_lines.append(".")
 
   report_lines.append(
-    f" In total, {total_acquired_pairs} control-label pairs were acquired"
+    f" In total, {total_acquired_pairs} {global_pattern} pairs were acquired"
   )
   if acquisition_duration != "N/A":
     report_lines.append(f" in a {acquisition_duration} time.")
@@ -226,8 +219,8 @@ def handle_voxel_size(values, combined_errors):
   return voxel_size_1_2, voxel_size_3
 
 
-def handle_pld_values(values, combined_errors):
-  status, pld_values, _ = handle_inconsistency(values, 'PostLabelingDelay', combined_errors)
+def handle_pld_values(values, combined_errors, key):
+  status, pld_values, _ = handle_inconsistency(values, key, combined_errors)
 
   def format_pld_array(pld_array):
     pld_counter = Counter(pld_array)
@@ -239,12 +232,24 @@ def handle_pld_values(values, combined_errors):
 
   if status == "consistent":
     if isinstance(pld_values, (list, tuple)):
-      extended_pld_text = format_pld_array(pld_values)
+      unique_values = set(pld_values)
+      if len(unique_values) == 1:
+        extended_pld_text = f"{unique_values.pop()}ms"
+      else:
+        extended_pld_text = format_pld_array(pld_values)
+    elif isinstance(pld_values, (int, float)):
+      extended_pld_text = f"{pld_values}ms"
     else:
       extended_pld_text = 'N/A'
   elif status == "inconsistent_common":
     if isinstance(pld_values, (list, tuple)):
-      extended_pld_text = f"(inconsistent, {format_pld_array(pld_values)} is the most common)"
+      unique_values = set(pld_values)
+      if len(unique_values) == 1:
+        extended_pld_text = f"(inconsistent, {unique_values.pop()}ms is the most common)"
+      else:
+        extended_pld_text = f"(inconsistent, {format_pld_array(pld_values)} is the most common)"
+    elif isinstance(pld_values, (int, float)):
+      extended_pld_text = f"(inconsistent, {pld_values}ms is the most common)"
     else:
       extended_pld_text = 'N/A'
   else:

@@ -1,3 +1,5 @@
+import os
+
 import yaml
 
 
@@ -11,6 +13,10 @@ def load_config(config_file):
   try:
     with open(config_file, 'r') as file:
       config = yaml.safe_load(file)
+
+      # Override with environment variables if they exist
+      config['server']['port'] = int(os.getenv('PORT', config['server']['port']))
+
     return config
   except FileNotFoundError:
     raise Exception(f"Configuration file {config_file} not found.")

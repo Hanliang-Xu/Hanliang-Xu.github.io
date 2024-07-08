@@ -1,7 +1,10 @@
+import csv
 import json
 import os
+from io import StringIO
 
 from flask import current_app
+
 from .json_validation import JSONValidator
 from .nifti_reader import read_nifti_file
 from .report_generator import generate_report
@@ -23,14 +26,6 @@ def validate_json_arrays(data, filenames):
                                  recommended_validator_schema, recommended_condition_schema,
                                  consistency_schema)
 
-  # Convert all necessary values from seconds to milliseconds before validation
-  for session in data:
-    for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration', 'BolusCutOffDelayTime',
-                'BackgroundSuppressionPulseTime', "PostLabelingDelay"]:
-      if key in session:
-        session[key] = convert_to_milliseconds(session[key])
-    session['PLDType'] = determine_pld_type(session)
-
   major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values = json_validator.validate(
     data, filenames)
 
@@ -45,6 +40,39 @@ def determine_pld_type(session):
       if len(unique_values) > 1:
         return "multi-PLD"
   return "single-PLD"
+
+
+def analyze_volume_types(volume_types):
+  first_non_m0type = next((vt for vt in volume_types if vt in {'control', 'label', 'deltam'}), None)
+  pattern = None
+  control_label_pairs = 0
+  label_control_pairs = 0
+  deltam_count = 0
+  if first_non_m0type == 'control':
+    pattern = 'control-label'
+  elif first_non_m0type == 'label':
+    pattern = 'label-control'
+  elif first_non_m0type == 'deltam':
+    pattern = 'deltam'
+    deltam_count = volume_types.count('deltam')
+    return pattern, deltam_count
+  i = 0
+  while i < len(volume_types):
+    if volume_types[i] == 'control' and i + 1 < len(volume_types) and volume_types[
+      i + 1] == 'label':
+      control_label_pairs += 1
+      i += 2
+    elif volume_types[i] == 'label' and i + 1 < len(volume_types) and volume_types[
+      i + 1] == 'control':
+      label_control_pairs += 1
+      i += 2
+    else:
+      i += 1
+  print(pattern)
+  if pattern == 'control-label':
+    return pattern, control_label_pairs
+  else:
+    return pattern, label_control_pairs
 
 
 def handle_upload(request):
@@ -69,7 +97,8 @@ def handle_upload(request):
     return {"error": error, "filename": nifti_file.filename}, 400
 
   asl_json_filenames, asl_json_data, m0_prep_times_collection = [], [], []
-  discrepancies, all_absent, bs_all_off = [], True, True
+  errors, warnings, all_absent, bs_all_off = [], [], True, True
+  global_pattern = None
 
   for group in grouped_files:
     if group['asl_json'] is not None:
@@ -77,42 +106,112 @@ def handle_upload(request):
       asl_json_filenames.append(asl_filename)
       asl_json_data.append(asl_data)
 
-      if asl_data.get("M0Type", []) != "Absent":
+      m0_type = asl_data.get("M0Type")
+      if m0_type != "Absent":
         all_absent = False
       if asl_data.get("BackgroundSuppression", []):
         bs_all_off = False
+  # Convert all necessary values from seconds to milliseconds before validation
+  for session in asl_json_data:
+    for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration',
+                'BolusCutOffDelayTime', 'BackgroundSuppressionPulseTime', "PostLabelingDelay"]:
+      if key in session:
+        session[key] = convert_to_milliseconds(session[key])
+    session['PLDType'] = determine_pld_type(session)
+
+  (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
+   combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
+    asl_json_data, asl_json_filenames)
+
+  for i, group in enumerate(grouped_files):
+    if group['asl_json'] is not None:
+      asl_filename = asl_json_filenames[i]
+      asl_data = asl_json_data[i]
+      m0_type = asl_data.get("M0Type")
 
       if group['m0_json'] is not None:
-        all_absent = False
         m0_filename, m0_data = group['m0_json']
+        for key in ['EchoTime', 'RepetitionTimePreparation']:
+          if key in m0_data:
+            m0_data[key] = convert_to_milliseconds(m0_data[key])
+        if m0_type == "Absent":
+          errors.append(
+            f"Error: M0 type specified as 'Absent' for '{asl_filename}', but"
+            f" '{m0_filename}' is present")
+        elif m0_type == "Included":
+          errors.append(
+            f"Error: M0 type specified as 'Included' for '{asl_filename}', but"
+            f" '{m0_filename}' is present")
         params_asl, params_m0 = extract_params(asl_data), extract_params(m0_data)
-        discrepancies.extend(compare_params(params_asl, params_m0, asl_filename, m0_filename))
+        errors.extend(compare_params(params_asl, params_m0, asl_filename, m0_filename)[0])
+        warnings.extend(compare_params(params_asl, params_m0, asl_filename, m0_filename)[1])
 
         m0_prep_time = m0_data.get("RepetitionTimePreparation", [])
         m0_prep_times_collection.append(m0_prep_time)
+      else:
+        if m0_type == "Separate":
+          errors.append(
+            f"Error: M0 type specified as 'Separate' for '{asl_filename}', but"
+            f" m0scan.json is not provided.")
 
       if group['tsv'] is not None:
-        all_absent = False
-        if asl_data.get("M0Type", []) != "Separate":
-          tsv_filename, tsv_data = group['tsv']
-          m0scan_count = sum(1 for line in tsv_data if line.strip() == "m0scan")
-          repetition_times = asl_data.get("RepetitionTimePreparation", [])
-          if len(repetition_times) > m0scan_count:
-            m0_prep_times_collection.append(repetition_times[:m0scan_count])
-            asl_data["RepetitionTimePreparation"] = repetition_times[m0scan_count:]
-          elif len(repetition_times) < m0scan_count:
-            discrepancies.append(
-              f"Error: 'RepetitionTimePreparation' array in ASL file '{asl_filename}' is shorter than the number of 'm0scan' in TSV file '{tsv_filename}'")
+        tsv_filename, tsv_data = group['tsv']
+        m0scan_count = sum(1 for line in tsv_data if line.strip() == "m0scan")
+        volume_types = [line.strip() for line in tsv_data if line.strip()]
+        pattern, total_acquired_pairs = analyze_volume_types(volume_types)
+        if global_pattern is None:
+          global_pattern = pattern
+        elif global_pattern != pattern:
+          global_pattern = "control-label (there's no consistent control-label or label-control order)"
+        if m0scan_count > 0:
+          if m0_type == "Absent":
+            errors.append(
+              f"Error: m0 type is specified as 'Absent' for '{asl_filename}', but"
+              f" '{tsv_filename}' contains m0scan.")
+          elif m0_type == "Separate":
+            errors.append(
+              f"Error: m0 type is specified as 'Separate' for '{asl_filename}', but"
+              f" '{tsv_filename}' contains m0scan.")
+          else:
+            repetition_times = asl_data.get("RepetitionTimePreparation", [])
+
+            if not isinstance(repetition_times, list):
+              repetition_times = [repetition_times]
+            repetition_times_max = max(repetition_times)
+            repetition_times_min = min(repetition_times)
+
+            if len(repetition_times) > m0scan_count:
+              m0_prep_times_collection.append(repetition_times[0])
+              asl_data["RepetitionTimePreparation"] = repetition_times[m0scan_count:]
+            elif (repetition_times_max - repetition_times_min) < 10e-5:
+              m0_prep_times_collection.append(repetition_times[0])
+              asl_data["RepetitionTimePreparation"] = repetition_times[0]
+            elif len(repetition_times) < m0scan_count:
+              errors.append(
+                f"Error: 'RepetitionTimePreparation' array in ASL file '{asl_filename}' is shorter"
+                f" than the number of 'm0scan' in TSV file '{tsv_filename}'")
+        else:
+          if group['m0_json'] is None and asl_data.get("BackgroundSuppression") and asl_data.get(
+              "BackgroundSuppression"):
+            if asl_data.get("BackgroundSuppressionPulseTime"):
+              warnings.append(f"For {asl_filename}, no M0 is provided and BS pulses with known"
+                              f" timings are on. BS-pulse efficiency has to be calculated to"
+                              f" enable absolute quantification.")
+            else:
+              warnings.append(f"For {asl_filename}, no M0 is provided and BS pulses with unknown"
+                              f" timings are on, only a relative quantification is possible.")
+      else:
+        errors.append(f"Error: 'aslcontext.tsv' is missing for {asl_filename}")
 
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
-                                                        bs_all_off, discrepancies)
+                                                        bs_all_off, errors, m0_type)
 
-  combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise, combined_warnings, combined_warnings_concise, combined_values = validate_json_arrays(
-    asl_json_data, asl_json_filenames)
-
-  if discrepancies:
-    combined_errors.update({"m0_error": discrepancies})
-    combined_errors_concise.update({"m0_error": discrepancies})
+  if errors:
+    combined_errors.update({"m0_error": errors})
+    combined_errors_concise.update({"m0_error": errors})
+  if warnings:
+    combined_warnings.update({"m0_warning": warnings})
+    combined_warnings_concise.update({"m0_warning": warnings})
 
   save_json(combined_major_errors, config['paths']['major_error_report'])
   save_json(combined_errors, config['paths']['error_report'])
@@ -123,7 +222,8 @@ def handle_upload(request):
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
   report = generate_report(combined_values, combined_major_errors, combined_errors,
-                           report_line_on_M0, M0_TR, slice_number=nifti_slice_number)
+                           report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs,
+                           slice_number=nifti_slice_number)
   save_report(report, config['paths']['final_report'])
 
   return {
@@ -203,25 +303,48 @@ def extract_params(data):
 
 
 def compare_params(params_asl, params_m0, asl_filename, m0_filename):
-  discrepancies = []
+  config = current_app.config
+  consistency_schema = config['schemas']['consistency_schema']
+
+  errors = []
+  warnings = []
   for param, asl_value in params_asl.items():
     m0_value = params_m0.get(param)
-    if isinstance(asl_value, float) and isinstance(m0_value, float):
-      tolerance = 1e-6
-      if abs(asl_value - m0_value) > tolerance:
-        discrepancies.append(
-          f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': ASL value = {asl_value}, M0 value = {m0_value}")
-    else:
+    schema = consistency_schema.get(param)
+
+    if not schema:
+      continue
+
+    validation_type = schema.get('validation_type')
+    warning_variation = schema.get('warning_variation', 1e-5)
+    error_variation = schema.get('error_variation', 1e-4)
+
+    if validation_type == "string":
       if asl_value != m0_value:
-        discrepancies.append(
-          f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': ASL value = {asl_value}, M0 value = {m0_value}")
-  return discrepancies
+        errors.append(
+          f"Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
+          f"ASL value = {asl_value}, M0 value = {m0_value}")
+    elif validation_type == "floatOrArray":
+      if isinstance(asl_value, float) and isinstance(m0_value, float):
+        difference = abs(asl_value - m0_value)
+        if difference > error_variation:
+          errors.append(
+            f"ERROR: Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
+            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference}, exceeds error threshold {error_variation}")
+        elif difference > warning_variation:
+          warnings.append(
+            f"WARNING: Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
+            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference}, exceeds warning threshold {warning_variation}")
+  return errors, warnings
 
 
-def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off, discrepancies):
+def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off, discrepancies,
+                               m0_type):
   M0_TR = None
+  if m0_type == "Estimate":
+    return M0_TR, "A single M0 scaling value is provided for CBF quantification"
   if m0_prep_times_collection:
-    if all(x == m0_prep_times_collection[0] for x in m0_prep_times_collection):
+    if all(abs(x - m0_prep_times_collection[0]) < 1e-5 for x in m0_prep_times_collection):
       M0_TR = m0_prep_times_collection[0]
     else:
       discrepancies.append("Different \"RepetitionTimePreparation\" parameters for M0")
@@ -235,6 +358,7 @@ def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off,
       report_line_on_M0 = "M0 was acquired with the same readout and without background suppression."
     else:
       report_line_on_M0 = "There is inconsistency in parameters between M0 and ASL scans."
+
   return M0_TR, report_line_on_M0
 
 

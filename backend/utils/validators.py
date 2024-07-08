@@ -189,9 +189,6 @@ class ConsistencyValidator(BaseValidator):
       mixed_values = not (all_floats or all_arrays)
 
       if all_floats:
-        print(f"self.error_variation is {self.error_variation}")
-        print(f"self.warning_variation is {self.warning_variation}")
-
         summary = self.calculate_summary(values, filenames)
         if self.error_variation is not None:
           dataset_min = min(values)
@@ -203,8 +200,8 @@ class ConsistencyValidator(BaseValidator):
           elif (self.warning_variation is not None and (
               dataset_max - dataset_min) > self.warning_variation):
             return None, None, None, None, (
-              f"INCONSISTENCY: Values vary slightly within {self.warning_variation}. {summary}"), (
-              f"INCONSISTENCY: Values ({dataset_min}, {dataset_max}) vary slightly within the allowed variation {self.warning_variation}.")
+              f"INCONSISTENCY: Values vary slightly within {self.error_variation}. {summary}"), (
+              f"INCONSISTENCY: Values ({dataset_min}, {dataset_max}) vary slightly within the allowed variation {self.error_variation}.")
         elif self.error_variation is None and self.warning_variation is None:
           dataset_min = min(values)
           dataset_max = max(values)
@@ -251,9 +248,9 @@ class ConsistencyValidator(BaseValidator):
           elif self.warning_variation is not None and (
               dataset_max - dataset_min) > self.warning_variation:
             return None, None, None, None, (
-              f"INCONSISTENCY: Values vary slightly within {self.warning_variation}. {summary}"), (
+              f"INCONSISTENCY: Values vary slightly within {self.error_variation}. {summary}"), (
               f"INCONSISTENCY: Values ({dataset_min}-{dataset_max}) vary slightly within"
-              f" {self.warning_variation}.")
+              f" {self.error_variation}.")
           elif self.error_variation is None and self.warning_variation is None:
             dataset_min = min(combined_values)
             dataset_max = max(combined_values)
@@ -290,10 +287,10 @@ class ConsistencyValidator(BaseValidator):
                 array_max - array_min) > self.warning_variation:
               return None, None, None, None, (
                 f"INCONSISTENCY: Values in arrays vary slightly within"
-                f" {self.warning_variation} at index {i}. Values:"
+                f" {self.error_variation} at index {i}. Values:"
                 f" {list(zip(filenames, sub_values))}"), (f"INCONSISTENCY: Values in arrays vary"
                                                           f" slightly within"
-                                                          f" {self.warning_variation} at index"
+                                                          f" {self.error_variation} at index"
                                                           f" {i} ({array_min}-{array_max}).")
             elif self.error_variation is None and self.warning_variation is None:
               array_min = min(sub_values)
