@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: ASL-parameters-generator
+Version: 1.0.0
+Summary: Website for the user to upload ASL images formatted in BIDS setup and get a report of the study's parameter in return
+Home-page: https://github.com/Hanliang-Xu/Hanliang-Xu.github.io
+Author: Hanliang Xu
+Author-email: hxu110@jh.edu
+Classifier: Programming Language :: Python :: 3
+Classifier: Framework :: Flask
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Requires-Dist: blinker==1.8.2
+Requires-Dist: click==8.1.7
+Requires-Dist: Flask==3.0.3
+Requires-Dist: Flask-Cors==4.0.1
+Requires-Dist: gunicorn==22.0.0
+Requires-Dist: itsdangerous==2.2.0
+Requires-Dist: Jinja2==3.1.4
+Requires-Dist: MarkupSafe==2.1.5
+Requires-Dist: packaging==24.0
+Requires-Dist: Werkzeug==3.0.3

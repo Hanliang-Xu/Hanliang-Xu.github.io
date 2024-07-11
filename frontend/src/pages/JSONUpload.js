@@ -2,8 +2,8 @@ import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
 
 //const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
-//const API_BASE_URL = 'http://127.0.0.1:8000';
-const API_BASE_URL = 'https://rock-sublime-428805-r3.uc.r.appspot.com';
+const API_BASE_URL = 'http://127.0.0.1:8000';
+//const API_BASE_URL = 'https://rock-sublime-428805-r3.uc.r.appspot.com';
 
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
@@ -25,6 +25,7 @@ function JSONUpload() {
 
     const handleDirectoryUpload = async (event) => {
         const files = Array.from(event.target.files);
+
 
         // Function to find relevant JSON and TSV files
         const findRelevantFiles = (items) => {
@@ -76,20 +77,26 @@ function JSONUpload() {
 
         // Main logic
         const niiFile = findNiiFile(files);
-        if (!niiFile) {
-            setUploadError("No .nii.gz or .nii files found in the selected folder directly under the /perf/ directory ending with 'asl.nii.gz' or 'asl.nii'.");
-            return;
-        }
+        //if (!niiFile) {
+        //    setUploadError("No .nii.gz or .nii files found in the selected folder directly under the /perf/ directory ending with 'asl.nii.gz' or 'asl.nii'.");
+        //    return;
+        //}
 
         const relevantFiles = findRelevantFiles(files);
         const formData = new FormData();
         formData.append('nii-file', niiFile);
 
-
-        relevantFiles.forEach(file => {
-            formData.append('files', file);
-            formData.append('filenames', file.name);
+        // Append all relevant files to formData
+        files.forEach(file => {
+            if (file.name.endsWith('.zip')) {
+                formData.append('zip-files', file);
+                formData.append('zip-filenames', file.name);
+            } else if (relevantFiles.includes(file)) {
+                formData.append('files', file);
+                formData.append('filenames', file.name);
+            }
         });
+
 
         try {
             const response = await fetch(`${API_BASE_URL}/upload`, {

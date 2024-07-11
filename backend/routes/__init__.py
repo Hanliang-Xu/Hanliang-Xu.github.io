@@ -1,2 +1,4 @@
-# routes/__init__.py
-# This file is intentionally left blank to mark the routes directory as a Python package
+# backend/routes/__init__.py
+from .upload_routes import upload_files
+from .download_routes import download_report
+from .home_routes import home

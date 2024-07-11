@@ -16,4 +16,4 @@ app.register_blueprint(upload_routes.upload_bp)
 app.register_blueprint(download_routes.download_bp)
 
 if __name__ == '__main__':
-    app.run(host=config['server']['host'], port=config['server']['port'])
+  app.run(host=config['server']['host'], port=config['server']['port'])

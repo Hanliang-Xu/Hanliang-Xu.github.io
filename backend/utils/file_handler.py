@@ -1,7 +1,8 @@
-import csv
 import json
 import os
-from io import StringIO
+import tempfile
+import zipfile
+import subprocess
 
 from flask import current_app
 
@@ -44,7 +45,7 @@ def determine_pld_type(session):
 
 def analyze_volume_types(volume_types):
   first_non_m0type = next((vt for vt in volume_types if vt in {'control', 'label', 'deltam'}), None)
-  pattern = None
+  pattern = "pattern error"
   control_label_pairs = 0
   label_control_pairs = 0
   deltam_count = 0
@@ -68,24 +69,66 @@ def analyze_volume_types(volume_types):
       i += 2
     else:
       i += 1
-  print(pattern)
   if pattern == 'control-label':
     return pattern, control_label_pairs
   else:
     return pattern, label_control_pairs
 
 
+def convert_zip_to_nifti(zip_files, zip_filenames, upload_folder):
+  nifti_files = []
+
+  for zip_file, zip_filename in zip(zip_files, zip_filenames):
+    if not zip_filename.endswith('.zip'):
+      return None, f"Invalid file: {zip_filename}"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+      zip_filepath = os.path.join(temp_dir, zip_filename)
+      zip_file.save(zip_filepath)
+
+      with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(temp_dir)
+
+      # Run dcm2niix on the extracted files
+      try:
+        result = subprocess.run(
+          ['dcm2niix', '-z', 'y', '-o', upload_folder, temp_dir],
+          check=True,
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE
+        )
+        print(result.stdout.decode())
+      except subprocess.CalledProcessError as e:
+        print(f"Error: {e.stderr.decode()}")
+        return None, e.stderr.decode()
+
+      for root, dirs, files in os.walk(upload_folder):
+        for file in files:
+          if file.endswith('.nii') or file.endswith('.nii.gz') or file.endswith('.tsv') or file.endswith('.json'):
+            nifti_files.append(os.path.join(root, file))
+  return nifti_files, None
+
+
 def handle_upload(request):
   config = current_app.config
 
-  if 'files' not in request.files or 'filenames' not in request.form:
+  if ('files' not in request.files or 'filenames' not in request.form) and (
+      'zip-files' not in request.files or 'zip-filenames' not in request.form):
     return {"error": "No file part"}, 400
 
   files = request.files.getlist('files')
   filenames = request.form.getlist('filenames')
   nifti_file = request.files.get('nii-file')
+  zip_files = request.files.getlist('zip-files')
+  zip_filenames = request.form.getlist('zip-filenames')
 
-  if not files or not filenames:
+  # Handle zip files conversion
+  nifti_files, error = convert_zip_to_nifti(zip_files, zip_filenames,
+                                            config['paths']['upload_folder'])
+  if error:
+    return {"error": error}, 400
+
+  if (not files or not filenames) and (not zip_files or not zip_filenames):
     return {"error": "No selected files or filenames"}, 400
 
   grouped_files, error = group_files(files, filenames, config['paths']['upload_folder'])
@@ -93,8 +136,11 @@ def handle_upload(request):
     return {"error": error}, 400
 
   nifti_slice_number, error = read_nifti_file(nifti_file, config['paths']['upload_folder'])
+  # TODO: PUT THIS BACK
+  """
   if error:
     return {"error": error, "filename": nifti_file.filename}, 400
+  """
 
   asl_json_filenames, asl_json_data, m0_prep_times_collection = [], [], []
   errors, warnings, all_absent, bs_all_off = [], [], True, True
@@ -204,7 +250,7 @@ def handle_upload(request):
         errors.append(f"Error: 'aslcontext.tsv' is missing for {asl_filename}")
 
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
-                                                        bs_all_off, errors, m0_type)
+                                                        bs_all_off, errors, m0_type=None)
 
   if errors:
     combined_errors.update({"m0_error": errors})
@@ -222,7 +268,7 @@ def handle_upload(request):
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
   report = generate_report(combined_values, combined_major_errors, combined_errors,
-                           report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs,
+                           report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs=None,
                            slice_number=nifti_slice_number)
   save_report(report, config['paths']['final_report'])
 

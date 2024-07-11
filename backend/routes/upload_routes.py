@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from ..utils.file_handler import handle_upload
+from backend.utils.file_handler import handle_upload
 
 upload_bp = Blueprint('upload', __name__)
 

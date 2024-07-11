@@ -1,0 +1,8 @@
+MANIFEST.in
+README.md
+setup.py
+ASL_parameters_generator.egg-info/PKG-INFO
+ASL_parameters_generator.egg-info/SOURCES.txt
+ASL_parameters_generator.egg-info/dependency_links.txt
+ASL_parameters_generator.egg-info/requires.txt
+ASL_parameters_generator.egg-info/top_level.txt

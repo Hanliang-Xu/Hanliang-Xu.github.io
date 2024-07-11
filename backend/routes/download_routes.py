@@ -1,6 +1,6 @@
 from flask import Blueprint, request, send_file, current_app
 
-from ..utils.error_handler import handle_error
+from backend.utils.error_handler import handle_error
 
 download_bp = Blueprint('download', __name__)
 
