@@ -1,15 +1,14 @@
 from collections import Counter
 
 
-def generate_report(values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs,
-                    slice_number):
+def generate_report(values, combined_major_errors, combined_errors, report_line_on_M0, M0_TR,
+                    global_pattern, total_acquired_pairs, slice_number):
   report_lines = []
 
   pld_type = handle_bolus_cutoff_technique(values, 'PLDType', combined_major_errors)
-  #total_acquired_pairs = extract_value(values, "TotalAcquiredPairs", combined_errors)
+  # total_acquired_pairs = extract_value(values, "TotalAcquiredPairs", combined_errors)
 
-  pld_value = extract_value(values, 'PostLabelingDelay', combined_errors)
-  extended_pld_text = handle_pld_values(values, combined_errors, 'PostLabelingDelay')
+  extended_pld_text = handle_pld_values(values, combined_errors, 'PostLabelingDelay', global_pattern)
 
   magnetic_field_strength = extract_value(values, "MagneticFieldStrength", combined_errors)
   manufacturer = extract_value(values, "Manufacturer", combined_errors)
@@ -46,7 +45,7 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
                                        format_duration=True)
 
   report_lines.append(
-    f"ASL was acquired with on a {magnetic_field_strength}T {manufacturer}"
+    f"ASL was acquired on a {magnetic_field_strength}T {manufacturer}"
     f" {manufacturers_model_name} scanner using {pld_type} {asl_type} labeling and a "
     f"{mr_acq_type} {pulse_seq_type} readout with the following parameters: "
   )
@@ -97,9 +96,15 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
         f" at {format_background_suppression(background_suppression_pulse_time)} after the start of labeling")
     report_lines.append(".")
 
-  report_lines.append(
-    f" In total, {total_acquired_pairs} {global_pattern} pairs were acquired"
-  )
+  if total_acquired_pairs == 1:
+    report_lines.append(
+      f" In total, {total_acquired_pairs} {global_pattern} pair was acquired"
+    )
+  else:
+    report_lines.append(
+      f" In total, {total_acquired_pairs} {global_pattern} pairs were acquired"
+    )
+
   if acquisition_duration != "N/A":
     report_lines.append(f" in a {acquisition_duration} time.")
   else:
@@ -107,7 +112,7 @@ def generate_report(values, combined_major_errors, combined_errors, report_line_
 
   report_lines.append(f" {report_line_on_M0}")
   if M0_TR:
-    report_lines.append(f" TR for M0 is {M0_TR}.")
+    report_lines.append(f" TR for M0 is {M0_TR}ms.")
 
   report_paragraph = "".join(line for line in report_lines)
 
@@ -219,15 +224,21 @@ def handle_voxel_size(values, combined_errors):
   return voxel_size_1_2, voxel_size_3
 
 
-def handle_pld_values(values, combined_errors, key):
+def handle_pld_values(values, combined_errors, key, global_pattern=False):
   status, pld_values, _ = handle_inconsistency(values, key, combined_errors)
 
   def format_pld_array(pld_array):
     pld_counter = Counter(pld_array)
-    formatted_pld = ', '.join(
-      [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
-       sorted(pld_counter.items())]
-    )
+    if global_pattern != "deltam":
+      formatted_pld = ', '.join(
+        [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
+         sorted(pld_counter.items())]
+      )
+    else:
+      formatted_pld = ', '.join(
+        [f"{pld}ms ({count} {'repeat' if count == 1 else 'repeats'})" for pld, count in
+         sorted(pld_counter.items())]
+      )
     return formatted_pld
 
   if status == "consistent":

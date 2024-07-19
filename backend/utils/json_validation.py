@@ -17,10 +17,11 @@ def create_validators_from_schema(schema):
 
   validators = {}
   for key, spec in schema.items():
-    validator_class = validator_classes[spec['type']]
+    spec_type = spec['type']
+    validator_class = validator_classes[spec_type]
 
     # Handle ConsistencyValidator separately
-    if spec['type'] == 'ConsistencyValidator':
+    if spec_type == 'ConsistencyValidator':
       validation_type = spec['validation_type']
       is_major = spec.get('is_major', False)
       error_variation = spec.get('error_variation')
@@ -29,8 +30,8 @@ def create_validators_from_schema(schema):
                                         error_variation=error_variation,
                                         warning_variation=warning_variation)
 
-      # Handle NumberValidator
-    elif spec['type'] == 'NumberValidator':
+    # Handle NumberValidator
+    elif spec_type == 'NumberValidator':
       validators[key] = validator_class(
         min_error=spec.get('min_error'),
         max_error=spec.get('max_error'),
@@ -42,18 +43,18 @@ def create_validators_from_schema(schema):
       )
 
     # Handle StringValidator
-    elif spec['type'] == 'StringValidator':
+    elif spec_type == 'StringValidator':
       validators[key] = validator_class(
         allowed_values=spec.get('allowed_values'),
         major_error=spec.get('major_error', False)
       )
 
     # Handle BooleanValidator
-    elif spec['type'] == 'BooleanValidator':
+    elif spec_type == 'BooleanValidator':
       validators[key] = validator_class()
 
     # Handle NumberArrayValidator
-    elif spec['type'] == 'NumberArrayValidator':
+    elif spec_type == 'NumberArrayValidator':
       validators[key] = validator_class(
         size_error=spec.get('size_error'),
         min_error=spec.get('min_error'),
@@ -65,7 +66,7 @@ def create_validators_from_schema(schema):
       )
 
     # Handle NumberOrNumberArrayValidator
-    elif spec['type'] == 'NumberOrNumberArrayValidator':
+    elif spec_type == 'NumberOrNumberArrayValidator':
       validators[key] = validator_class(
         size_error=spec.get('size_error'),
         min_error=spec.get('min_error'),
@@ -81,6 +82,7 @@ def create_validators_from_schema(schema):
       validators[key] = validator_class(**spec)
 
   return validators
+
 
 class JSONValidator:
   def __init__(self, major_error_schema, required_validator_schema, required_condition_schema,
@@ -135,7 +137,7 @@ class JSONValidator:
 
       for i, data in enumerate(data_list):
         if self.should_apply_validation(data, condition):
-          if field not in data and is_required:
+          if field not in data and (is_major or is_required):
             missing_files.append(filenames[i])
           elif field in data:
             aggregated_data[field].append((data[field], filenames[i]))

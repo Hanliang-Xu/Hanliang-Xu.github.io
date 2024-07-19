@@ -3,6 +3,7 @@ import {Box, Button, Typography} from '@mui/material';
 
 //const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
 const API_BASE_URL = 'http://127.0.0.1:8000';
+
 //const API_BASE_URL = 'https://rock-sublime-428805-r3.uc.r.appspot.com';
 
 function JSONUpload() {
@@ -42,17 +43,37 @@ function JSONUpload() {
                 const parentFolder = pathParts[pathParts.length - 2];
 
                 if (parentFolder === 'perf' && item.name.endsWith('asl.json')) {
+                    relevantFiles.push(item);
+                    // Extract the base name before '_asl.json'
+                    const baseName = item.name.replace('_asl.json', '');
+
                     // Find related files in the same folder
                     const folderItems = items.filter(i => i.webkitRelativePath.startsWith(relativePath.replace(/[^/]+$/, '')));
-                    const m0scanFile = findFileInFolder(folderItems, 'm0scan.json');
-                    const aslcontextFile = findFileInFolder(folderItems, 'aslcontext.tsv');
 
-                    relevantFiles.push(item);  // Push asl.json
-                    if (m0scanFile) {
-                        relevantFiles.push(m0scanFile);  // Push m0scan.json if it exists
-                    }
-                    if (aslcontextFile) {
-                        relevantFiles.push(aslcontextFile);  // Push aslcontext.tsv if it exists
+                    // Check if the base name matches the '_run-*' pattern
+                    const runPatternMatch = baseName.match(/_run-\d+$/);
+
+                    if (runPatternMatch) {
+                        const m0scanFile = findFileInFolder(folderItems, `${baseName}_m0scan.json`);
+                        const aslcontextFile = findFileInFolder(folderItems, `${baseName}_aslcontext.tsv`);
+
+                        if (m0scanFile) {
+                            relevantFiles.push(m0scanFile); // Push _run-*_m0scan.json if it exists
+                        }
+                        if (aslcontextFile) {
+                            relevantFiles.push(aslcontextFile); // Push _run-*_aslcontext.tsv if it exists
+                        }
+
+                    } else {
+                        const m0scanFile = findFileInFolder(folderItems, 'm0scan.json');
+                        const aslcontextFile = findFileInFolder(folderItems, 'aslcontext.tsv');
+
+                        if (m0scanFile) {
+                            relevantFiles.push(m0scanFile); // Push m0scan.json if it exists
+                        }
+                        if (aslcontextFile) {
+                            relevantFiles.push(aslcontextFile); // Push aslcontext.tsv if it exists
+                        }
                     }
                 }
             }
@@ -77,10 +98,6 @@ function JSONUpload() {
 
         // Main logic
         const niiFile = findNiiFile(files);
-        //if (!niiFile) {
-        //    setUploadError("No .nii.gz or .nii files found in the selected folder directly under the /perf/ directory ending with 'asl.nii.gz' or 'asl.nii'.");
-        //    return;
-        //}
 
         const relevantFiles = findRelevantFiles(files);
         const formData = new FormData();
@@ -88,14 +105,15 @@ function JSONUpload() {
 
         // Append all relevant files to formData
         files.forEach(file => {
-            if (file.name.endsWith('.zip')) {
-                formData.append('zip-files', file);
-                formData.append('zip-filenames', file.name);
-            } else if (relevantFiles.includes(file)) {
-                formData.append('files', file);
-                formData.append('filenames', file.name);
+            if (file.name.endsWith('.dcm')) {
+                formData.append('dcm-files', file);
             }
         });
+
+        relevantFiles.forEach(file => {
+            formData.append('files', file);
+            formData.append('filenames', file.name);
+        })
 
 
         try {

@@ -1,10 +1,13 @@
 import json
 import os
-import tempfile
-import zipfile
+import shutil
 import subprocess
+import tempfile
+from typing import Any, Dict
 
 from flask import current_app
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 from .json_validation import JSONValidator
 from .nifti_reader import read_nifti_file
@@ -12,23 +15,26 @@ from .report_generator import generate_report
 from .unit_conversion import convert_to_milliseconds
 
 
+DURATION_OF_EACH_RFBLOCK = 0.0184
+
 def validate_json_arrays(data, filenames):
   config = current_app.config
 
-  major_error_schema = config['schemas']['major_error_schema']
-  required_validator_schema = config['schemas']['required_validator_schema']
-  required_condition_schema = config['schemas']['required_condition_schema']
-  recommended_validator_schema = config['schemas']['recommended_validator_schema']
-  recommended_condition_schema = config['schemas']['recommended_condition_schema']
-  consistency_schema = config['schemas']['consistency_schema']
+  major_error_schema_alias = config['schemas']['major_error_schema']
+  required_validator_schema_alias = config['schemas']['required_validator_schema']
+  required_condition_schema_alias = config['schemas']['required_condition_schema']
+  recommended_validator_schema_alias = config['schemas']['recommended_validator_schema']
+  recommended_condition_schema_alias = config['schemas']['recommended_condition_schema']
+  consistency_schema_alias = config['schemas']['consistency_schema']
 
-  json_validator = JSONValidator(major_error_schema, required_validator_schema,
-                                 required_condition_schema,
-                                 recommended_validator_schema, recommended_condition_schema,
-                                 consistency_schema)
+  json_validator = JSONValidator(major_error_schema_alias, required_validator_schema_alias,
+                                 required_condition_schema_alias,
+                                 recommended_validator_schema_alias,
+                                 recommended_condition_schema_alias,
+                                 consistency_schema_alias)
 
-  major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values = json_validator.validate(
-    data, filenames)
+  major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values \
+    = json_validator.validate(data, filenames)
 
   return major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values
 
@@ -48,7 +54,7 @@ def analyze_volume_types(volume_types):
   pattern = "pattern error"
   control_label_pairs = 0
   label_control_pairs = 0
-  deltam_count = 0
+
   if first_non_m0type == 'control':
     pattern = 'control-label'
   elif first_non_m0type == 'label':
@@ -75,81 +81,114 @@ def analyze_volume_types(volume_types):
     return pattern, label_control_pairs
 
 
-def convert_zip_to_nifti(zip_files, zip_filenames, upload_folder):
-  nifti_files = []
+def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
+  converted_files = []
+  converted_filenames = []
+  nifti_file_assigned = nifti_file
 
-  for zip_file, zip_filename in zip(zip_files, zip_filenames):
-    if not zip_filename.endswith('.zip'):
-      return None, f"Invalid file: {zip_filename}"
+  with tempfile.TemporaryDirectory() as temp_dir:
+    for dcm_file in dcm_files:
+      dcm_filename_secure = secure_filename(dcm_file.filename)
+      dcm_filepath = os.path.join(temp_dir, dcm_filename_secure)
+      dcm_file.save(dcm_filepath)
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-      zip_filepath = os.path.join(temp_dir, zip_filename)
-      zip_file.save(zip_filepath)
+    # Check if there are any DICOM files in the temporary directory
+    if not os.listdir(temp_dir):
+      print("No DICOM files found.")
+      return None, None, nifti_file, "nifti", "No DICOM files found."
 
-      with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
-        zip_ref.extractall(temp_dir)
+    # Ensure upload_folder exists
+    os.makedirs(upload_folder, exist_ok=True)
 
-      # Run dcm2niix on the extracted files
-      try:
-        result = subprocess.run(
-          ['dcm2niix', '-z', 'y', '-o', upload_folder, temp_dir],
-          check=True,
-          stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE
-        )
-        print(result.stdout.decode())
-      except subprocess.CalledProcessError as e:
-        print(f"Error: {e.stderr.decode()}")
-        return None, e.stderr.decode()
+    # Run dcm2niix on the temporary directory with the DICOM files
+    try:
+      result = subprocess.run(
+        ['dcm2niix', '-z', 'y', '-o', upload_folder, temp_dir],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+      )
+      print(result.stdout.decode())
+    except subprocess.CalledProcessError as e:
+      print(f"Error: {e.stderr.decode()}")
+      return None, None, nifti_file, None, e.stderr.decode()
 
-      for root, dirs, files in os.walk(upload_folder):
-        for file in files:
-          if file.endswith('.nii') or file.endswith('.nii.gz') or file.endswith('.tsv') or file.endswith('.json'):
-            nifti_files.append(os.path.join(root, file))
-  return nifti_files, None
+    # Collect the converted files
+    for root, dirs, files in os.walk(upload_folder):
+      for file in files:
+        file_path = os.path.join(root, file)
+        if file.endswith('.nii') or file.endswith('.nii.gz'):
+          if nifti_file_assigned is None:
+            nifti_file_assigned = file_path
+        else:
+          converted_files.append(file_path)
+          converted_filenames.append(file)
+
+  if nifti_file_assigned is None:
+    return None, None, None, "nifti", "No NIfTI file was generated."
+
+  return converted_files, converted_filenames, nifti_file_assigned, "dicom", None
 
 
 def handle_upload(request):
   config = current_app.config
 
-  if ('files' not in request.files or 'filenames' not in request.form) and (
-      'zip-files' not in request.files or 'zip-filenames' not in request.form):
+  if (
+      'files' not in request.files or 'filenames' not in request.form) and 'dcm-files' not in request.files:
     return {"error": "No file part"}, 400
+
+  upload_folder = current_app.config['paths']['upload_folder']
+
+  # Ensure the upload folder exists
+  os.makedirs(upload_folder, exist_ok=True)
 
   files = request.files.getlist('files')
   filenames = request.form.getlist('filenames')
   nifti_file = request.files.get('nii-file')
-  zip_files = request.files.getlist('zip-files')
-  zip_filenames = request.form.getlist('zip-filenames')
+  dcm_files = request.files.getlist('dcm-files')
+
+  # Save each file with the corresponding filename
+  for file, filename in zip(files, filenames):
+    filepath = os.path.join(upload_folder, filename)
+    file.save(filepath)
 
   # Handle zip files conversion
-  nifti_files, error = convert_zip_to_nifti(zip_files, zip_filenames,
-                                            config['paths']['upload_folder'])
+  new_files, new_filenames, nifti_file, file_format, error = convert_dcm_to_nifti(dcm_files,
+                                                                                  upload_folder,
+                                                                                  nifti_file)
+  if (error == "No DICOM files found.") and (not files):
+    return {"error": "Neither DICOM nor NIfTI files were found."}
+  elif (error != "No DICOM files found.") and error:
+    return {"error": error}, 400
+
+  # Append new files and filenames to the existing ones
+  if new_files:
+    files.extend(new_files)
+    filenames.extend(new_filenames)
+
+  grouped_files, error = group_files(files, filenames, upload_folder, file_format)
+
   if error:
     return {"error": error}, 400
 
-  if (not files or not filenames) and (not zip_files or not zip_filenames):
-    return {"error": "No selected files or filenames"}, 400
-
-  grouped_files, error = group_files(files, filenames, config['paths']['upload_folder'])
+  nifti_slice_number, error = read_nifti_file(nifti_file, upload_folder)
   if error:
-    return {"error": error}, 400
-
-  nifti_slice_number, error = read_nifti_file(nifti_file, config['paths']['upload_folder'])
-  # TODO: PUT THIS BACK
-  """
-  if error:
-    return {"error": error, "filename": nifti_file.filename}, 400
-  """
+    return {"error": error, "filename": nifti_file}, 400
 
   asl_json_filenames, asl_json_data, m0_prep_times_collection = [], [], []
   errors, warnings, all_absent, bs_all_off = [], [], True, True
-  global_pattern = None
 
   for group in grouped_files:
     if group['asl_json'] is not None:
-      asl_filename, asl_data = group['asl_json']
+      asl_filename, asl_data_or_path = group['asl_json']
       asl_json_filenames.append(asl_filename)
+
+      # Check if asl_data_or_path is a file path (string) and read the file
+      if isinstance(asl_data_or_path, str):
+        with open(asl_data_or_path, 'r') as file:
+          asl_data: Dict[str, Any] = json.load(file)
+      else:
+        asl_data = asl_data_or_path
       asl_json_data.append(asl_data)
 
       m0_type = asl_data.get("M0Type")
@@ -157,8 +196,24 @@ def handle_upload(request):
         all_absent = False
       if asl_data.get("BackgroundSuppression", []):
         bs_all_off = False
+
   # Convert all necessary values from seconds to milliseconds before validation
   for session in asl_json_data:
+    if 'ScanningSequence' in session:
+      session['PulseSequenceType'] = session['ScanningSequence']
+      del session['ScanningSequence']
+    if 'RepetitionTime' in session:
+      session['RepetitionTimePreparation'] = session['RepetitionTime']
+      del session['RepetitionTime']
+    if 'InversionTime' in session:
+      session['PostLabelingDelay'] = session['InversionTime']
+      del session['InversionTime']
+    if 'BolusDuration' in session:
+      session['BolusCutOffDelayTime'] = session['BolusDuration']
+      del session['BolusDuration']
+    if 'NumRFBlocks' in session:
+      session['LabelingDuration'] = session['NumRFBlocks'] * DURATION_OF_EACH_RFBLOCK
+
     for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration',
                 'BolusCutOffDelayTime', 'BackgroundSuppressionPulseTime', "PostLabelingDelay"]:
       if key in session:
@@ -169,6 +224,20 @@ def handle_upload(request):
    combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
     asl_json_data, asl_json_filenames)
 
+  # Clean up upload folder
+  for filename in os.listdir(upload_folder):
+    file_path = os.path.join(upload_folder, filename)
+    try:
+      if os.path.isfile(file_path) or os.path.islink(file_path):
+        os.unlink(file_path)
+      elif os.path.isdir(file_path):
+        shutil.rmtree(file_path)
+    except Exception as e:
+      return {"error": f"Failed to delete {file_path}. Reason: {e}"}, 500
+
+  total_acquired_pairs = None
+  m0_type = None
+  global_pattern = None
   for i, group in enumerate(grouped_files):
     if group['asl_json'] is not None:
       asl_filename = asl_json_filenames[i]
@@ -177,7 +246,7 @@ def handle_upload(request):
 
       if group['m0_json'] is not None:
         m0_filename, m0_data = group['m0_json']
-        for key in ['EchoTime', 'RepetitionTimePreparation']:
+        for key in ['EchoTime', 'RepetitionTimePreparation', 'RepetitionTime']:
           if key in m0_data:
             m0_data[key] = convert_to_milliseconds(m0_data[key])
         if m0_type == "Absent":
@@ -205,6 +274,7 @@ def handle_upload(request):
         m0scan_count = sum(1 for line in tsv_data if line.strip() == "m0scan")
         volume_types = [line.strip() for line in tsv_data if line.strip()]
         pattern, total_acquired_pairs = analyze_volume_types(volume_types)
+
         if global_pattern is None:
           global_pattern = pattern
         elif global_pattern != pattern:
@@ -246,11 +316,15 @@ def handle_upload(request):
             else:
               warnings.append(f"For {asl_filename}, no M0 is provided and BS pulses with unknown"
                               f" timings are on, only a relative quantification is possible.")
-      else:
+      elif file_format == "nifti":
         errors.append(f"Error: 'aslcontext.tsv' is missing for {asl_filename}")
+      else:
+        # TODO here: analyze total acquired pairs for dicom input
+        global_pattern = "control-label"
+        total_acquired_pairs = None
 
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
-                                                        bs_all_off, errors, m0_type=None)
+                                                        bs_all_off, errors, m0_type=m0_type)
 
   if errors:
     combined_errors.update({"m0_error": errors})
@@ -258,6 +332,8 @@ def handle_upload(request):
   if warnings:
     combined_warnings.update({"m0_warning": warnings})
     combined_warnings_concise.update({"m0_warning": warnings})
+
+  os.makedirs(os.path.dirname(config['paths']['upload_folder']), exist_ok=True)
 
   save_json(combined_major_errors, config['paths']['major_error_report'])
   save_json(combined_errors, config['paths']['error_report'])
@@ -268,7 +344,8 @@ def handle_upload(request):
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
   report = generate_report(combined_values, combined_major_errors, combined_errors,
-                           report_line_on_M0, M0_TR, global_pattern, total_acquired_pairs=None,
+                           report_line_on_M0, M0_TR, global_pattern,
+                           total_acquired_pairs=total_acquired_pairs,
                            slice_number=nifti_slice_number)
   save_report(report, config['paths']['final_report'])
 
@@ -287,28 +364,27 @@ def handle_upload(request):
   }, 200
 
 
-def group_files(files, filenames, upload_folder):
+def group_files(files, filenames, upload_dir, file_format):
   grouped_files = []
   current_group = {'asl_json': None, 'm0_json': None, 'tsv': None}
-
-  for file, filename in zip(files, filenames):
+  for _, filename in zip(files, filenames):
     if not filename.endswith(('.json', '.tsv')):
       return None, f"Invalid file: {filename}"
 
-    filepath = os.path.join(upload_folder, filename)
+    filepath = os.path.join(upload_dir, filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    file.save(filepath)
-
     data, error = read_file(filepath)
+
     if error:
       return None, error
 
-    if filename.endswith('asl.json'):
+    if filename.endswith('m0scan.json') or (('m0' in filename) and file_format == "dicom"):
+      current_group['m0_json'] = (filename, data)
+    elif (filename.endswith('asl.json') and file_format == "nifti") or (
+        filename.endswith('.json') and file_format == "dicom"):
       if current_group['asl_json']:
         grouped_files.append(current_group)
       current_group = {'asl_json': (filename, data), 'm0_json': None, 'tsv': None}
-    elif filename.endswith('m0scan.json'):
-      current_group['m0_json'] = (filename, data)
     elif filename.endswith('.tsv'):
       current_group['tsv'] = (filename, data)
 
@@ -320,13 +396,27 @@ def group_files(files, filenames, upload_folder):
 
 def read_file(file_path):
   try:
+    # Determine if the input is a FileStorage object or a file path
+    if isinstance(file_path, FileStorage):
+      file_stream = file_path.stream
+    elif isinstance(file_path, str):
+      file_stream = open(file_path, 'r')
+    else:
+      return None, f"Unsupported file type: {type(file_path)}"
+
     if file_path.endswith('.json'):
-      with open(file_path, 'r') as file:
-        data = json.load(file)
-      return data, None
+      with file_stream as f:
+        content = f.read().strip()  # Read the content and strip any leading/trailing whitespace
+        if content:  # Check if the file is not empty
+          data = json.loads(content)  # Parse JSON content
+          return data, None
+        else:
+          return None, None
     elif file_path.endswith('.tsv'):
-      with open(file_path, 'r') as file:
-        lines = file.readlines()
+      with file_stream as f:
+        lines = f.readlines()
+      if not lines:
+        return None, None
       header = lines[0].strip()
       if header != 'volume_type':
         return None, "Invalid TSV header, not \"volume_type\""
@@ -334,7 +424,11 @@ def read_file(file_path):
       return data, None
     else:
       return None, "Unsupported file format"
+  except json.JSONDecodeError as e:
+    return None, f"Error decoding JSON from file: {e.msg}"
   except Exception as e:
+    print("Error encountered:", e)
+    print("File path:", file_path)
     return None, f"Error reading file: {str(e)}"
 
 

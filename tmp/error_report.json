@@ -1,0 +1,33 @@
+{
+  "BackgroundSuppression": [
+    {
+      "Missing in files": [
+        "tmp39e44t5s_pcasl_2d_20181218130847_9.json"
+      ]
+    }
+  ],
+  "M0Type": [
+    {
+      "Missing in files": [
+        "tmp39e44t5s_pcasl_2d_20181218130847_9.json"
+      ]
+    }
+  ],
+  "TotalAcquiredPairs": [
+    {
+      "Missing in files": [
+        "tmp39e44t5s_pcasl_2d_20181218130847_9.json"
+      ]
+    }
+  ],
+  "PostLabelingDelay": [
+    {
+      "Missing in files": [
+        "tmp39e44t5s_pcasl_2d_20181218130847_9.json"
+      ]
+    }
+  ],
+  "m0_error": [
+    "Discrepancy in 'PulseSequenceType' for ASL file 'tmp39e44t5s_pcasl_2d_20181218130847_9.json' and M0 file 'tmp39e44t5s_pcasl_2d_m0_20181218130847_10.json': ASL value = EP, M0 value = None"
+  ]
+}

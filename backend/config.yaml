@@ -6,11 +6,11 @@ server:
 
 # File paths
 paths:
-  upload_folder: '/tmp/uploads'
-  major_error_report: '/tmp/major_error_report.json'
-  error_report: '/tmp/error_report.json'
-  warning_report: '/tmp/warning_report.json'
-  final_report: '/tmp/report.txt'
+  upload_folder: 'tmp/upload'
+  major_error_report: 'tmp/major_error_report.json'
+  error_report: 'tmp/error_report.json'
+  warning_report: 'tmp/warning_report.json'
+  final_report: 'tmp/report.txt'
 
 # Allowed file types
 allowed_file_types:
@@ -37,6 +37,7 @@ schemas:
     PulseSequenceType:
       type: "StringValidator"
       major_error: true
+      aliases: ["ScanningSequence"]
 
   required_validator_schema:
     BackgroundSuppression:
@@ -52,18 +53,23 @@ schemas:
       size_error: 3
     LabelingDuration:
       type: "NumberOrNumberArrayValidator"
+      aliases: "NumRFBlocks"
+
     PostLabelingDelay:
       type: "NumberOrNumberArrayValidator"
+      aliases: ["InversionTime"]
     BolusCutOffFlag:
       type: "BooleanValidator"
     BolusCutOffTechnique:
       type: "StringValidator"
     BolusCutOffDelayTime:
       type: "NumberOrNumberArrayValidator"
+      aliases: ["BolusDuration"]
     EchoTime:
       type: "NumberOrNumberArrayValidator"
     RepetitionTimePreparation:
       type: "NumberOrNumberArrayValidator"
+      aliases: ["RepetitionTime"]
     FlipAngle:
       type: "NumberValidator"
       min_error: 0
@@ -210,6 +216,7 @@ schemas:
       type: "ConsistencyValidator"
       validation_type: "string"
       is_major: true
+      aliases: ["ScanningSequence"]
     EchoTime:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
@@ -220,11 +227,13 @@ schemas:
       validation_type: "floatOrArray"
       error_variation: 10
       warning_variation: 0.1
+      aliases: ["RepetitionTime"]
     LabelingDuration:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 10
       warning_variation: 0.1
+      aliases: ["NumRFBlocks"]
     BackgroundSuppression:
       type: "ConsistencyValidator"
       validation_type: "boolean"
