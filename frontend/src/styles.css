@@ -1,15 +1,31 @@
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
 }
 
-input[type="file"] {
-    display: block;
-    margin: 20px 0;
+.MuiAppBar-root {
+    background-color: #FFFFFF !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid #E0E0E0 !important;
 }
 
-button {
-    margin-top: 10px;
+.MuiTabs-indicator {
+    background-color: #0D47A1 !important;
+}
+
+.MuiTab-root {
+    color: #000000 !important;
+    font-size: 1rem !important;
+}
+
+.MuiTab-root:hover {
+    color: #0D47A1 !important;
+}
+
+.MuiTab-root.Mui-selected {
+    color: #0D47A1 !important;
+    font-weight: bold !important;
 }

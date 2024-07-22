@@ -1,0 +1,29 @@
+.image-bar-container {
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    background-color: #f0f0f0;
+}
+
+.image-bar {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll 30s linear infinite; /* Slower speed */
+}
+
+.image-item {
+    display: inline-block;
+    width: auto;
+    height: 450px; /* Set a fixed height three times larger */
+    margin: 0 10px;
+    vertical-align: middle;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}

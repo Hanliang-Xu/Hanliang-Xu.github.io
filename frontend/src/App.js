@@ -1,12 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
-import Home from './pages/Home';
-import Projects from './pages/Projects';
-import Experience from './pages/Experience';
-import Awards from './pages/Awards';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material';
+import About from './pages/About';
 import JSONUpload from './pages/JSONUpload';
-
-import { AppBar, createTheme, Tab, Tabs, ThemeProvider } from '@mui/material';
+import LandingPage from './pages/LandingPage';
+import ImageBar from './pages/ImageBar';
+import TopBar from './components/TopBar';
 import './styles.css';
 
 const theme = createTheme({
@@ -16,6 +15,9 @@ const theme = createTheme({
         },
         secondary: {
             main: '#FFC107',
+        },
+        text: {
+            primary: '#000000',
         },
     },
     typography: {
@@ -28,53 +30,26 @@ function App() {
         <Router>
             <ThemeProvider theme={theme}>
                 <div>
-                    <AppBar
-                        position="static"
-                        sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            height: '5rem'
-                        }}
-                    >
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            alignItems: 'center',
-                            width: '100%',
-                            height: '100%'
-                        }}>
-                            <Tabs
-                                sx={{
-                                    '& .MuiTab-root': {
-                                        fontSize: '2rem',
-                                        fontFamily: theme.typography.fontFamily,
-                                        minWidth: 'auto',
-                                        padding: '0 1rem',
-                                        color: theme.palette.secondary.main,
-                                        '&:hover': {
-                                            color: theme.palette.secondary.dark,
-                                        },
-                                        '&.Mui-selected': {
-                                            color: theme.palette.primary.main,
-                                        }
-                                    }
-                                }}
-                            >
-                                <Tab label="JSON Upload" component={Link} to="/" />
-                                <Tab label="Experience" component={Link} to="/experience" />
-                                <Tab label="Projects" component={Link} to="/projects" />
-                                <Tab label="Awards" component={Link} to="/awards" />
-                                <Tab label="Home" component={Link} to="/json-upload" />
-                            </Tabs>
-                        </div>
-                    </AppBar>
+                    <TopBar /> {/* Use the new component */}
 
-                    <Routes>
-                        <Route path="/json-upload" element={<Home />} />
-                        <Route path="/projects" element={<Projects />} />
-                        <Route path="/experience" element={<Experience />} />
-                        <Route path="/awards" element={<Awards />} />
-                        <Route path="/" element={<JSONUpload />} />
-                    </Routes>
+                    {/* Add padding to offset the fixed TopBar height */}
+                    <div style={{ paddingTop: '5rem' }}>
+                        <Routes>
+                            <Route path="/json-upload" element={<JSONUpload />} />
+                            <Route
+                                path="/"
+                                element={
+                                    <div>
+                                        <LandingPage />
+                                        <section id="about" style={{ padding: '100px 20px', marginBottom: '10px' }}>
+                                            <About />
+                                        </section>
+                                        <ImageBar />
+                                    </div>
+                                }
+                            />
+                        </Routes>
+                    </div>
                 </div>
             </ThemeProvider>
         </Router>

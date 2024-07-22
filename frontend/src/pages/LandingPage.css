@@ -1,0 +1,51 @@
+.landing-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #00344A; /* Background color similar to the screenshot */
+    position: relative;
+    overflow: hidden;
+    color: #FFC107; /* Text color */
+}
+
+.landing-content {
+    text-align: center;
+    z-index: 1;
+}
+
+.landing-content h1 {
+    font-size: 4rem;
+    margin: 0;
+}
+
+.landing-content p {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.landing-container::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0,52,74,1) 0%, rgba(0,30,40,1) 100%);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    z-index: 0;
+    opacity: 0.7;
+}
+
+.landing-container::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0,52,74,1) 0%, rgba(0,30,40,1) 100%);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    z-index: 0;
+    opacity: 0.7;
+}
