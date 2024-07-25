@@ -58,7 +58,7 @@ const TopBar = () => {
                             }
                         }}
                     >
-                        <Tab label="About" component={HashLink} smooth to="#about" />
+                        <Tab label="About" component={HashLink} smooth to="/#about" />
                     </Tabs>
                     <Box
                         component="span"

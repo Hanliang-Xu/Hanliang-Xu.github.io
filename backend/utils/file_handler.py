@@ -1,10 +1,13 @@
 import json
+import math
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 from typing import Any, Dict
 
+import pydicom
 from flask import current_app
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
@@ -14,8 +17,8 @@ from .nifti_reader import read_nifti_file
 from .report_generator import generate_report
 from .unit_conversion import convert_to_milliseconds
 
-
 DURATION_OF_EACH_RFBLOCK = 0.0184
+
 
 def validate_json_arrays(data, filenames):
   config = current_app.config
@@ -85,12 +88,35 @@ def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
   converted_files = []
   converted_filenames = []
   nifti_file_assigned = nifti_file
+  processed_series = set()
+  series_repetitions = {}
 
   with tempfile.TemporaryDirectory() as temp_dir:
     for dcm_file in dcm_files:
       dcm_filename_secure = secure_filename(dcm_file.filename)
       dcm_filepath = os.path.join(temp_dir, dcm_filename_secure)
       dcm_file.save(dcm_filepath)
+
+      # Read DICOM file header
+      ds = pydicom.dcmread(dcm_filepath)
+      series_number_element = ds.get((0x0020, 0x0011), None)
+
+      if series_number_element:
+        series_number = series_number_element.value
+        if series_number in processed_series:
+          continue  # Skip processing if this series has already been processed
+
+        processed_series.add(series_number)
+
+        # Print the line with "lRepetitions" if present
+        private_0029_1020 = ds.get((0x0029, 0x1020), None)
+        if private_0029_1020:
+          value = private_0029_1020.value.decode('latin1')  # Fallback to another encoding
+
+          match = re.search(r"lRepetitions\s*=\s*(\d+)", value)
+          if match:
+            lRepetitions_value = match.group(1)
+            series_repetitions[series_number] = lRepetitions_value
 
     # Check if there are any DICOM files in the temporary directory
     if not os.listdir(temp_dir):
@@ -120,9 +146,21 @@ def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
         if file.endswith('.nii') or file.endswith('.nii.gz'):
           if nifti_file_assigned is None:
             nifti_file_assigned = file_path
-        else:
+        elif file.endswith('.json'):
+          with open(file_path, 'r') as json_file:
+            json_data = json.load(json_file)
+
+          series_number = json_data.get('SeriesNumber', None)
+          if series_number and series_number in series_repetitions:
+            json_data['lRepetitions'] = series_repetitions[series_number]
+            with open(file_path, 'w') as json_file:
+              json.dump(json_data, json_file, indent=4)
+
           converted_files.append(file_path)
           converted_filenames.append(file)
+        else:
+          print(f"Error: Unexpected file format {file_path}")
+          return None, None, nifti_file, None, f"Unexpected file format: {file_path}"
 
   if nifti_file_assigned is None:
     return None, None, None, "nifti", "No NIfTI file was generated."
@@ -213,16 +251,16 @@ def handle_upload(request):
       del session['BolusDuration']
     if 'NumRFBlocks' in session:
       session['LabelingDuration'] = session['NumRFBlocks'] * DURATION_OF_EACH_RFBLOCK
+    if 'InitialPostLabelDelay' in session:
+      session['PostLabelingDelay'] = session['InitialPostLabelDelay']
+      del session['InitialPostLabelDelay']
+
 
     for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration',
                 'BolusCutOffDelayTime', 'BackgroundSuppressionPulseTime', "PostLabelingDelay"]:
       if key in session:
         session[key] = convert_to_milliseconds(session[key])
     session['PLDType'] = determine_pld_type(session)
-
-  (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
-   combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
-    asl_json_data, asl_json_filenames)
 
   # Clean up upload folder
   for filename in os.listdir(upload_folder):
@@ -235,9 +273,10 @@ def handle_upload(request):
     except Exception as e:
       return {"error": f"Failed to delete {file_path}. Reason: {e}"}, 500
 
-  total_acquired_pairs = None
+
   m0_type = None
   global_pattern = None
+  total_acquired_pairs = None
   for i, group in enumerate(grouped_files):
     if group['asl_json'] is not None:
       asl_filename = asl_json_filenames[i]
@@ -274,6 +313,7 @@ def handle_upload(request):
         m0scan_count = sum(1 for line in tsv_data if line.strip() == "m0scan")
         volume_types = [line.strip() for line in tsv_data if line.strip()]
         pattern, total_acquired_pairs = analyze_volume_types(volume_types)
+        asl_data['TotalAcquiredPairs'] = total_acquired_pairs
 
         if global_pattern is None:
           global_pattern = pattern
@@ -319,10 +359,15 @@ def handle_upload(request):
       elif file_format == "nifti":
         errors.append(f"Error: 'aslcontext.tsv' is missing for {asl_filename}")
       else:
-        # TODO here: analyze total acquired pairs for dicom input
+        # Analyze total acquired pairs for DICOM input
+        if 'lRepetitions' in asl_data:
+          total_acquired_pairs = math.ceil(int(asl_data['lRepetitions']) / 2)
+          asl_data['TotalAcquiredPairs'] = total_acquired_pairs
         global_pattern = "control-label"
-        total_acquired_pairs = None
 
+  (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
+   combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
+    asl_json_data, asl_json_filenames)
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
                                                         bs_all_off, errors, m0_type=m0_type)
 

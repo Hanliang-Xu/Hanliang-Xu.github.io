@@ -8,7 +8,7 @@
 .image-bar {
     display: inline-block;
     white-space: nowrap;
-    animation: scroll 30s linear infinite; /* Slower speed */
+    animation: scroll 20s linear infinite; /* Slower speed */
 }
 
 .image-item {
