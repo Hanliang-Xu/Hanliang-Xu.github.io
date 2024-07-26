@@ -255,7 +255,6 @@ def handle_upload(request):
       session['PostLabelingDelay'] = session['InitialPostLabelDelay']
       del session['InitialPostLabelDelay']
 
-
     for key in ['EchoTime', 'RepetitionTimePreparation', 'LabelingDuration',
                 'BolusCutOffDelayTime', 'BackgroundSuppressionPulseTime', "PostLabelingDelay"]:
       if key in session:
@@ -272,7 +271,6 @@ def handle_upload(request):
         shutil.rmtree(file_path)
     except Exception as e:
       return {"error": f"Failed to delete {file_path}. Reason: {e}"}, 500
-
 
   m0_type = None
   global_pattern = None
@@ -368,21 +366,26 @@ def handle_upload(request):
   (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
    combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
     asl_json_data, asl_json_filenames)
+  print(combined_errors_concise)
+
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
                                                         bs_all_off, errors, m0_type=m0_type)
 
-  if errors:
-    combined_errors.update({"m0_error": errors})
-    combined_errors_concise.update({"m0_error": errors})
-  if warnings:
-    combined_warnings.update({"m0_warning": warnings})
-    combined_warnings_concise.update({"m0_warning": warnings})
+  # Use the helper function to ensure keys exist and append values
+  ensure_keys_and_append(combined_errors, "m0_error", errors)
+  ensure_keys_and_append(combined_errors_concise, "m0_error", errors)
+  ensure_keys_and_append(combined_warnings, "m0_warning", warnings)
+  ensure_keys_and_append(combined_warnings_concise, "m0_warning", warnings)
 
   os.makedirs(os.path.dirname(config['paths']['upload_folder']), exist_ok=True)
 
   save_json(combined_major_errors, config['paths']['major_error_report'])
   save_json(combined_errors, config['paths']['error_report'])
   save_json(combined_warnings, config['paths']['warning_report'])
+
+  major_errors_concise_text = extract_concise_error(combined_major_errors_concise)
+  errors_concise_text = extract_concise_error(combined_errors_concise)
+  warnings_concise_text = extract_concise_error(combined_warnings_concise)
 
   inconsistency_errors = extract_inconsistencies(combined_errors_concise)
   major_inconsistency_errors = extract_inconsistencies(combined_major_errors_concise)
@@ -403,10 +406,36 @@ def handle_upload(request):
     "warnings_concise": combined_warnings_concise,
     "report": report,
     "nifti_slice_number": nifti_slice_number,
+    "major_errors_concise_text": major_errors_concise_text,
+    "errors_concise_text": errors_concise_text,
+    "warnings_concise_text": warnings_concise_text,
     "inconsistencies": "".join(inconsistency_errors),
     "major_inconsistencies": "".join(major_inconsistency_errors),
     "warning_inconsistencies": "".join(warning_inconsistency_errors)
   }, 200
+
+
+def extract_concise_error(issue_dict):
+  report = []
+
+  for field, issues in issue_dict.items():
+    for issue in issues:
+      if isinstance(issue, dict):
+        for sub_issue, details in issue.items():
+          if isinstance(details, list):
+            details_str = ', '.join(map(str, details))
+            report.append(f'{sub_issue} for "{field}": {details_str}')
+          else:
+            report.append(f'{sub_issue} for "{field}": {details}')
+
+  return '\n'.join(report)
+
+
+# Function to ensure keys exist and append values if they exist
+def ensure_keys_and_append(dictionary, key, value):
+  if value and key not in dictionary:
+    dictionary[key] = []
+    dictionary[key].append(value)
 
 
 def group_files(files, filenames, upload_dir, file_format):
@@ -528,7 +557,8 @@ def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off,
   M0_TR = None
   if m0_type == "Estimate":
     return M0_TR, "A single M0 scaling value is provided for CBF quantification"
-  if m0_prep_times_collection:
+  if m0_prep_times_collection and all(not item for item in m0_prep_times_collection):
+    print(m0_prep_times_collection)
     if all(abs(x - m0_prep_times_collection[0]) < 1e-5 for x in m0_prep_times_collection):
       M0_TR = m0_prep_times_collection[0]
     else:

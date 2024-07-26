@@ -9,11 +9,16 @@ const API_BASE_URL = 'http://127.0.0.1:8000';
 function JSONUpload() {
     const [majorErrorReport, setMajorErrorReport] = useState(null);
     const [majorErrorReportConcise, setMajorErrorReportConcise] = useState(null);
+    const [majorErrorReportConciseText, setMajorErrorReportConciseText] = useState(null);
     const [errorReport, setErrorReport] = useState(null);
     const [errorReportConcise, setErrorReportConcise] = useState(null);
+    const [errorReportConciseText, setErrorReportConciseText] = useState(null);
     const [warningReport, setWarningReport] = useState(null);
     const [warningReportConcise, setWarningReportConcise] = useState(null);
+    const [warningReportConciseText, setWarningReportConciseText] = useState(null);
     const [report, setReport] = useState(null);
+    const [extendedReport, setExtendedReport] = useState(null);
+
     const [uploadError, setUploadError] = useState(null);
     const [inconsistencies, setInconsistencies] = useState(null);
     const [majorInconsistencies, setMajorInconsistencies] = useState(null);
@@ -23,6 +28,7 @@ function JSONUpload() {
     const [showErrorConcise, setShowErrorConcise] = useState(true);
     const [showWarningConcise, setShowWarningConcise] = useState(true);
     const [copySuccess, setCopySuccess] = useState('');
+
 
     const handleDirectoryUpload = async (event) => {
         const files = Array.from(event.target.files);
@@ -130,11 +136,15 @@ function JSONUpload() {
             const result = await response.json();
             setMajorErrorReport(Object.keys(result.major_errors).length ? result.major_errors : null);
             setMajorErrorReportConcise(Object.keys(result.major_errors_concise).length ? result.major_errors_concise : null);
+            setMajorErrorReportConciseText(result.major_errors_concise_text || null);
             setErrorReport(Object.keys(result.errors).length ? result.errors : null);
             setErrorReportConcise(Object.keys(result.errors_concise).length ? result.errors_concise : null);
+            setErrorReportConciseText(result.errors_concise_text || null);
             setWarningReport(Object.keys(result.warnings).length ? result.warnings : null);
             setWarningReportConcise(Object.keys(result.warnings_concise).length ? result.warnings_concise : null);
+            setWarningReportConciseText(result.warnings_concise_text || null);
             setReport(result.report || null);
+            setExtendedReport(result.extended_report || "TODO");
             setInconsistencies(result.inconsistencies || null);
             setMajorInconsistencies(result.major_inconsistencies || null);
             setWarningInconsistencies(result.warning_inconsistencies || null);
@@ -149,7 +159,7 @@ function JSONUpload() {
         window.location.href = `${API_BASE_URL}/download?type=${type}`;
     };
 
-    const renderReportSection = (title, fullReport, conciseReport, showConcise, setShowConcise, type) => (
+    const renderReportSection = (title, fullReport, conciseReport, conciseText, showConcise, setShowConcise, type) => (
         <Box mt={2} sx={{
             border: `1px solid ${type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}`,
             padding: '10px',
@@ -160,19 +170,17 @@ function JSONUpload() {
                         sx={{color: type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}}>{title}:</Typography>
             {showConcise && (
                 <Box mt={2}>
-                    <Typography variant="subtitle1"
-                                sx={{color: type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}}>Inconsistencies:</Typography>
-                    <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                        {type === 'major_errors' ? majorInconsistencies :
-                            type === 'errors' ? inconsistencies :
-                                type === 'warnings' ? warningInconsistencies : ''}
-                    </pre>
+          <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+            {type === 'major_errors' ? majorInconsistencies :
+                type === 'errors' ? inconsistencies :
+                    type === 'warnings' ? warningInconsistencies : ''}
+          </pre>
                 </Box>
             )}
             <pre style={{
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
-            }}>{showConcise ? (conciseReport ? JSON.stringify(conciseReport, null, 2) : "") : (fullReport ? JSON.stringify(fullReport, null, 2) : "")}</pre>
+            }}>{showConcise ? (conciseText ? conciseText : (conciseReport ? JSON.stringify(conciseReport, null, 2) : "")) : (fullReport ? JSON.stringify(fullReport, null, 2) : "")}</pre>
             <Button variant="contained" color="error"
                     onClick={() => handleDownloadReport(type)}>
                 Download {type.replace('_', ' ')} Report
@@ -195,7 +203,6 @@ function JSONUpload() {
                 console.error('Failed to copy: ', err);
             });
     };
-
 
     return (
         <Box
@@ -281,6 +288,7 @@ function JSONUpload() {
                 "MAJOR ERRORS (you cannot report a sequence protocol without these)",
                 majorErrorReport,
                 majorErrorReportConcise,
+                majorErrorReportConciseText,
                 showMajorConcise,
                 setShowMajorConcise,
                 'major_errors'
@@ -289,6 +297,7 @@ function JSONUpload() {
                 "ERRORS (these are major shortcomings, you need to provide those)",
                 errorReport,
                 errorReportConcise,
+                errorReportConciseText,
                 showErrorConcise,
                 setShowErrorConcise,
                 'errors'
@@ -297,6 +306,7 @@ function JSONUpload() {
                 "WARNINGS",
                 warningReport,
                 warningReportConcise,
+                warningReportConciseText,
                 showWarningConcise,
                 setShowWarningConcise,
                 'warnings'
@@ -336,6 +346,27 @@ function JSONUpload() {
                             {copySuccess}
                         </Typography>
                     )}
+                </Box>
+            )}
+            {extendedReport && (
+                <Box mt={2} sx={{
+                    border: '1px solid green',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    backgroundColor: '#e6ffe6',
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    position: 'relative'  // Add relative positioning for positioning the copy feedback
+                }}>
+                    <Typography variant="h6" sx={{color: 'green'}}>Extended Report:</Typography>
+                    <pre style={{
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word'
+                    }}>{extendedReport}</pre>
+                    <Button variant="contained" color="primary"
+                            onClick={() => handleDownloadReport('extended_report')}>
+                        Download Extended Report
+                    </Button>
                 </Box>
             )}
         </Box>

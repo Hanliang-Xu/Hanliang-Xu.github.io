@@ -169,18 +169,29 @@ class JSONValidator:
             aggregated_warnings.append(consistency_warning)
             aggregated_warnings_concise.append(consistency_warning_concise)
 
+        def append_error(aggregation, error_message, filename):
+          found = False
+          for error_entry in aggregation:
+            if error_message in error_entry:
+              error_entry[error_message].append(filename)
+              found = True
+              break
+          if not found:
+            aggregation.append({error_message: [filename]})
+
         for value, filename in aggregated_data[field]:
-          major_error, major_error_concise, error, error_concise, warning, warning_concise = (
-            validator.validate(value))
+          major_error, major_error_concise, error, error_concise, warning, warning_concise = validator.validate(
+            value)
+
           if major_error:
-            aggregated_major_errors.append((filename, major_error))
-            aggregated_major_errors_concise.append((filename, major_error_concise))
+            append_error(aggregated_major_errors, major_error, filename)
+            append_error(aggregated_major_errors_concise, major_error_concise, filename)
           if error:
-            aggregated_errors.append((filename, error))
-            aggregated_errors_concise.append((filename, error_concise))
+            append_error(aggregated_errors, error, filename)
+            append_error(aggregated_errors_concise, error_concise, filename)
           if warning:
-            aggregated_warnings.append((filename, warning))
-            aggregated_warnings_concise.append((filename, warning_concise))
+            append_error(aggregated_warnings, warning, filename)
+            append_error(aggregated_warnings_concise, warning_concise, filename)
           aggregated_values.append((filename, value))
 
       if aggregated_major_errors:

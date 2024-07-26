@@ -1,15 +1,30 @@
 {
-  "m0_error": [
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase",
-    "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EP, M0 value = 3Dgrase"
+  "BackgroundSuppression": [
+    {
+      "Missing in files": [
+        "tmpcda_j5_j_pasl_2d_20181218130847_3.json"
+      ]
+    }
+  ],
+  "M0Type": [
+    {
+      "Missing in files": [
+        "tmpcda_j5_j_pasl_2d_20181218130847_3.json"
+      ]
+    }
+  ],
+  "BolusCutOffFlag": [
+    {
+      "Missing in files": [
+        "tmpcda_j5_j_pasl_2d_20181218130847_3.json"
+      ]
+    }
+  ],
+  "BolusCutOffTechnique": [
+    {
+      "Missing in files": [
+        "tmpcda_j5_j_pasl_2d_20181218130847_3.json"
+      ]
+    }
   ]
 }
