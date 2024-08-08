@@ -120,7 +120,6 @@ def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
 
     # Check if there are any DICOM files in the temporary directory
     if not os.listdir(temp_dir):
-      print("No DICOM files found.")
       return None, None, nifti_file, "nifti", "No DICOM files found."
 
     # Ensure upload_folder exists
@@ -237,9 +236,11 @@ def handle_upload(request):
 
   # Convert all necessary values from seconds to milliseconds before validation
   for session in asl_json_data:
+    """
     if 'ScanningSequence' in session:
-      session['PulseSequenceType'] = session['ScanningSequence']
+      session['ScanningSequence'] = session['ScanningSequence']
       del session['ScanningSequence']
+    """
     if 'RepetitionTime' in session:
       session['RepetitionTimePreparation'] = session['RepetitionTime']
       del session['RepetitionTime']
@@ -366,16 +367,13 @@ def handle_upload(request):
   (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
    combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
     asl_json_data, asl_json_filenames)
-  print(combined_errors_concise)
 
   M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
                                                         bs_all_off, errors, m0_type=m0_type)
 
   # Use the helper function to ensure keys exist and append values
   ensure_keys_and_append(combined_errors, "m0_error", errors)
-  ensure_keys_and_append(combined_errors_concise, "m0_error", errors)
   ensure_keys_and_append(combined_warnings, "m0_warning", warnings)
-  ensure_keys_and_append(combined_warnings_concise, "m0_warning", warnings)
 
   os.makedirs(os.path.dirname(config['paths']['upload_folder']), exist_ok=True)
 
@@ -390,6 +388,9 @@ def handle_upload(request):
   inconsistency_errors = extract_inconsistencies(combined_errors_concise)
   major_inconsistency_errors = extract_inconsistencies(combined_major_errors_concise)
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
+
+  m0_concise_error = condense_and_reformat_discrepancies(errors)
+  m0_concise_warning = condense_and_reformat_discrepancies(warnings)
 
   report = generate_report(combined_values, combined_major_errors, combined_errors,
                            report_line_on_M0, M0_TR, global_pattern,
@@ -411,8 +412,34 @@ def handle_upload(request):
     "warnings_concise_text": warnings_concise_text,
     "inconsistencies": "".join(inconsistency_errors),
     "major_inconsistencies": "".join(major_inconsistency_errors),
-    "warning_inconsistencies": "".join(warning_inconsistency_errors)
+    "warning_inconsistencies": "".join(warning_inconsistency_errors),
+    "m0_concise_error": "".join(m0_concise_error),
+    "m0_concise_warning": "".join(m0_concise_warning),
   }, 200
+
+
+def condense_and_reformat_discrepancies(error_list):
+  condensed_errors = {}
+
+  for error in error_list:
+    if "Discrepancy in '" in error:
+      # Extract the key part of the error message
+      start_idx = error.index("Discrepancy in '")
+      end_idx = error.index("'", start_idx + len("Discrepancy in '"))
+      param_name = error[start_idx + len("Discrepancy in '"):end_idx]
+
+      # Reformat the message in the desired format
+      reformatted_error = f"{param_name} (M0): Discrepancy between ASL JSON and M0 JSON"
+
+      # If the parameter is already in the dictionary, skip adding it again
+      if param_name not in condensed_errors:
+        condensed_errors[param_name] = reformatted_error
+    else:
+      # If the message doesn't contain "Discrepancy", add it as is
+      condensed_errors[error] = error
+
+  # Convert the dictionary values back to a list
+  return list(condensed_errors.values())
 
 
 def extract_concise_error(issue_dict):
@@ -541,14 +568,15 @@ def compare_params(params_asl, params_m0, asl_filename, m0_filename):
     elif validation_type == "floatOrArray":
       if isinstance(asl_value, float) and isinstance(m0_value, float):
         difference = abs(asl_value - m0_value)
+        difference_formatted = f"{difference:.2f}"
         if difference > error_variation:
           errors.append(
             f"ERROR: Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
-            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference}, exceeds error threshold {error_variation}")
+            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference_formatted}, exceeds error threshold {error_variation}")
         elif difference > warning_variation:
           warnings.append(
             f"WARNING: Discrepancy in '{param}' for ASL file '{asl_filename}' and M0 file '{m0_filename}': "
-            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference}, exceeds warning threshold {warning_variation}")
+            f"ASL value = {asl_value}, M0 value = {m0_value}, difference = {difference_formatted}, exceeds warning threshold {warning_variation}")
   return errors, warnings
 
 

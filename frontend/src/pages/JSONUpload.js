@@ -23,6 +23,8 @@ function JSONUpload() {
     const [inconsistencies, setInconsistencies] = useState(null);
     const [majorInconsistencies, setMajorInconsistencies] = useState(null);
     const [warningInconsistencies, setWarningInconsistencies] = useState(null);
+    const [m0ConciseError, setM0ConciseError] = useState(null);
+    const [m0ConciseWarning, setM0ConciseWarning] = useState(null);
 
     const [showMajorConcise, setShowMajorConcise] = useState(true);
     const [showErrorConcise, setShowErrorConcise] = useState(true);
@@ -148,6 +150,8 @@ function JSONUpload() {
             setInconsistencies(result.inconsistencies || null);
             setMajorInconsistencies(result.major_inconsistencies || null);
             setWarningInconsistencies(result.warning_inconsistencies || null);
+            setM0ConciseError(result.m0_concise_error || null);
+            setM0ConciseWarning(result.m0_concise_warning || null);
             setUploadError(null);
         } catch (error) {
             console.error('Error:', error);
@@ -159,7 +163,17 @@ function JSONUpload() {
         window.location.href = `${API_BASE_URL}/download?type=${type}`;
     };
 
-    const renderReportSection = (title, fullReport, conciseReport, conciseText, showConcise, setShowConcise, type) => (
+    const renderReportSection = (
+        title,
+        fullReport,
+        conciseReport,
+        conciseText,
+        showConcise,
+        setShowConcise,
+        type,
+        m0Concise = null
+    ) => (
+
         <Box mt={2} sx={{
             border: `1px solid ${type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}`,
             padding: '10px',
@@ -170,17 +184,26 @@ function JSONUpload() {
                         sx={{color: type === 'major_errors' ? 'darkred' : type === 'errors' ? 'red' : 'orange'}}>{title}:</Typography>
             {showConcise && (
                 <Box mt={2}>
-          <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-            {type === 'major_errors' ? majorInconsistencies :
-                type === 'errors' ? inconsistencies :
-                    type === 'warnings' ? warningInconsistencies : ''}
-          </pre>
+                    <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                        {type === 'major_errors' ? majorInconsistencies :
+                            type === 'errors' ? inconsistencies :
+                                type === 'warnings' ? warningInconsistencies : ''}
+                    </pre>
                 </Box>
             )}
-            <pre style={{
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word'
-            }}>{showConcise ? (conciseText ? conciseText : (conciseReport ? JSON.stringify(conciseReport, null, 2) : "")) : (fullReport ? JSON.stringify(fullReport, null, 2) : "")}</pre>
+
+            <pre style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                {showConcise ? (
+                    conciseText || conciseReport || m0Concise ? (
+                        <>
+                            {conciseText ? conciseText : (conciseReport ? JSON.stringify(conciseReport, null, 2) : "")}
+                            {conciseText || conciseReport ? (m0Concise && `\n${m0Concise}`) : m0Concise}
+                        </>
+                    ) : ""
+                ) : fullReport ? (
+                    JSON.stringify(fullReport, null, 2)
+                ) : ""}
+            </pre>
             <Button variant="contained" color="error"
                     onClick={() => handleDownloadReport(type)}>
                 Download {type.replace('_', ' ')} Report
@@ -191,6 +214,7 @@ function JSONUpload() {
             </Button>
         </Box>
     );
+
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(report)
@@ -300,7 +324,8 @@ function JSONUpload() {
                 errorReportConciseText,
                 showErrorConcise,
                 setShowErrorConcise,
-                'errors'
+                'errors',
+                m0ConciseError,
             )}
             {warningReport && renderReportSection(
                 "WARNINGS",
@@ -309,7 +334,8 @@ function JSONUpload() {
                 warningReportConciseText,
                 showWarningConcise,
                 setShowWarningConcise,
-                'warnings'
+                'warnings',
+                m0ConciseWarning
             )}
             {report && (
                 <Box mt={2} sx={{

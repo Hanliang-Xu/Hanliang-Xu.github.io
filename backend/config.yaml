@@ -6,11 +6,11 @@ server:
 
 # File paths
 paths:
-  upload_folder: 'tmp/upload'
-  major_error_report: 'tmp/major_error_report.json'
-  error_report: 'tmp/error_report.json'
-  warning_report: 'tmp/warning_report.json'
-  final_report: 'tmp/report.txt'
+  upload_folder: '/tmp/upload'
+  major_error_report: '/tmp/major_error_report.json'
+  error_report: '/tmp/error_report.json'
+  warning_report: '/tmp/warning_report.json'
+  final_report: '/tmp/report.txt'
 
 # Allowed file types
 allowed_file_types:

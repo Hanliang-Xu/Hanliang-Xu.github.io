@@ -15,5 +15,13 @@
 
 # Python pycache:
 __pycache__/
+
+# Python pycache:
+__pycache__/
 # Ignored by the build system
 /setup.cfg
+
+# Ignore virtual environment
+.venv/
+tmp/
+frontend/
