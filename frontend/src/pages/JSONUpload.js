@@ -1,5 +1,11 @@
 import React, {useState} from 'react';
 import {Box, Button, Typography} from '@mui/material';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 
 //const API_BASE_URL = 'https://asl-parameters-generator-a94b4af439d2.herokuapp.com/';
 const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -25,6 +31,10 @@ function JSONUpload() {
     const [warningInconsistencies, setWarningInconsistencies] = useState(null);
     const [m0ConciseError, setM0ConciseError] = useState(null);
     const [m0ConciseWarning, setM0ConciseWarning] = useState(null);
+
+    const [aslParameters, setAslParameters] = useState(null);
+    const [m0Parameters, setM0Parameters] = useState(null);
+    const [extendedParameters, setExtendedParameters] = useState(null);
 
     const [showMajorConcise, setShowMajorConcise] = useState(true);
     const [showErrorConcise, setShowErrorConcise] = useState(true);
@@ -145,13 +155,17 @@ function JSONUpload() {
             setWarningReport(Object.keys(result.warnings).length ? result.warnings : null);
             setWarningReportConcise(Object.keys(result.warnings_concise).length ? result.warnings_concise : null);
             setWarningReportConciseText(result.warnings_concise_text || null);
-            setReport(result.report || null);
-            setExtendedReport(result.extended_report || "TODO");
+            setReport(result.basic_report || null);
+            setExtendedReport(result.extended_report || null);
             setInconsistencies(result.inconsistencies || null);
             setMajorInconsistencies(result.major_inconsistencies || null);
             setWarningInconsistencies(result.warning_inconsistencies || null);
             setM0ConciseError(result.m0_concise_error || null);
             setM0ConciseWarning(result.m0_concise_warning || null);
+            setAslParameters(result.asl_parameters || null)
+            setM0Parameters(result.m0_parameters || null)
+            setExtendedParameters(result.extended_parameters || null)
+
             setUploadError(null);
         } catch (error) {
             console.error('Error:', error);
@@ -161,6 +175,64 @@ function JSONUpload() {
 
     const handleDownloadReport = (type) => {
         window.location.href = `${API_BASE_URL}/download?type=${type}`;
+    };
+
+
+    const renderCombinedParameterTable = (aslParameters = [], m0Parameters = [], extendedParameters = []) => {
+        if (!extendedReport) {
+            return null; // Don't render the table if conditions aren't met
+        }
+
+        const combinedParameters = [
+            ...(Array.isArray(aslParameters) ? aslParameters : []),
+            ...(Array.isArray(m0Parameters) ? m0Parameters : []),
+            ...(Array.isArray(extendedParameters) ? extendedParameters : [])
+        ];
+
+        return (
+            <TableContainer
+                component={Paper}
+                sx={{
+                    mt: 4,
+                    width: '95%',
+                    marginLeft: '18px',  // Left margin
+                    marginRight: '18px'  // Right margin
+                }}
+            >
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, ml: 3 }}>Combined Parameters</Typography>
+                <Table aria-label="combined parameter table">
+                    <TableBody>
+                        {combinedParameters.map((row, index) => (
+                            <TableRow key={index}>
+                                <TableCell
+                                    component="th"
+                                    scope="row"
+                                    sx={{
+                                        borderBottom: '1px solid rgba(224, 224, 224, 1)',
+                                        padding: '8px 16px',  // Padding to add space between text and cell border
+                                        whiteSpace: 'nowrap', // Prevents text from wrapping
+                                        verticalAlign: 'top',  // Aligns text to the top
+                                        paddingLeft: '48px'
+                                    }}
+                                >
+                                    {row[0]}
+                                </TableCell>
+                                <TableCell
+                                    align="left"
+                                    sx={{
+                                        borderBottom: '1px solid rgba(224, 224, 224, 1)',
+                                        padding: '8px 16px',  // Padding to add space between text and cell border
+                                        width: '100%' // Ensures the column stretches across the remaining width
+                                    }}
+                                >
+                                    {row[1]}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        );
     };
 
     const renderReportSection = (
@@ -395,6 +467,7 @@ function JSONUpload() {
                     </Button>
                 </Box>
             )}
+            {renderCombinedParameterTable(aslParameters, m0Parameters, extendedParameters)}
         </Box>
     );
 }

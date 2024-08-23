@@ -1,0 +1,104 @@
+{
+  "major_errors": {},
+  "major_errors_concise": {},
+  "errors": {},
+  "errors_concise": {},
+  "warnings": {
+    "AcquisitionVoxelSize": [
+      "INCONSISTENCY: Values in arrays vary slightly within 0.1 at index 2. Values: [('sub-Sub104_asl.json', 4.01), ('sub-Sub103_asl.json', 4)]"
+    ]
+  },
+  "warnings_concise": {},
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm2, 28 slices with 4.01mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm2, 28 slices with 4.01mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "nifti_slice_number": 28,
+  "major_errors_concise_text": "",
+  "errors_concise_text": "",
+  "warnings_concise_text": "",
+  "inconsistencies": "",
+  "major_inconsistencies": "",
+  "warning_inconsistencies": "AcquisitionVoxelSize: Values in arrays vary slightly within 0.1 at index 2 (4-4.01).\n",
+  "m0_concise_error": "",
+  "m0_concise_warning": "",
+  "asl_parameters": [
+    [
+      "Magnetic Field Strength",
+      "3T"
+    ],
+    [
+      "Manufacturer",
+      "Siemens"
+    ],
+    [
+      "Manufacturer's Model Name",
+      "Prisma_fit"
+    ],
+    [
+      "PLD Type",
+      "single-PLD"
+    ],
+    [
+      "ASL Type",
+      "PCASL"
+    ],
+    [
+      "MR Acquisition Type",
+      "3D"
+    ],
+    [
+      "Pulse Sequence Type",
+      "GRASE"
+    ],
+    [
+      "Echo Time",
+      "13.28ms"
+    ],
+    [
+      "Repetition Time",
+      "4950ms"
+    ],
+    [
+      "Flip Angle",
+      130
+    ],
+    [
+      "In-plane Resolution",
+      "3.4x3.4mm2"
+    ],
+    [
+      "Slice Thickness",
+      "4.01mm"
+    ],
+    [
+      "Labeling Duration",
+      1800
+    ],
+    [
+      "PLD",
+      "2000ms"
+    ],
+    [
+      "Background Suppression",
+      "with"
+    ],
+    [
+      "Background Suppression Number of Pulses",
+      4
+    ],
+    [
+      "Background Suppression Pulse Time",
+      "2290ms, 2925ms, 3425ms, and 3705ms"
+    ],
+    [
+      "Total Acquired Pairs",
+      8
+    ]
+  ],
+  "m0_parameters": [
+    [
+      "M0 Type",
+      "Separate"
+    ]
+  ],
+  "extended_parameters": []
+}

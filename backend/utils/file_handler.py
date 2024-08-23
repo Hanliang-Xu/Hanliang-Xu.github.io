@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 
 from .json_validation import JSONValidator
 from .nifti_reader import read_nifti_file
-from .report_generator import generate_report
+from .report_generator import generate_asl_report, generate_m0_report, generate_extended_report
 from .unit_conversion import convert_to_milliseconds
 
 DURATION_OF_EACH_RFBLOCK = 0.0184
@@ -35,7 +35,6 @@ def validate_json_arrays(data, filenames):
                                  recommended_validator_schema_alias,
                                  recommended_condition_schema_alias,
                                  consistency_schema_alias)
-
   major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values \
     = json_validator.validate(data, filenames)
 
@@ -368,9 +367,6 @@ def handle_upload(request):
    combined_warnings, combined_warnings_concise, combined_values) = validate_json_arrays(
     asl_json_data, asl_json_filenames)
 
-  M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
-                                                        bs_all_off, errors, m0_type=m0_type)
-
   # Use the helper function to ensure keys exist and append values
   ensure_keys_and_append(combined_errors, "m0_error", errors)
   ensure_keys_and_append(combined_warnings, "m0_warning", warnings)
@@ -389,23 +385,44 @@ def handle_upload(request):
   major_inconsistency_errors = extract_inconsistencies(combined_major_errors_concise)
   warning_inconsistency_errors = extract_inconsistencies(combined_warnings_concise)
 
-  m0_concise_error = condense_and_reformat_discrepancies(errors)
-  m0_concise_warning = condense_and_reformat_discrepancies(warnings)
+  m0_concise_error, m0_concise_error_params = condense_and_reformat_discrepancies(errors)
+  m0_concise_warning, _ = condense_and_reformat_discrepancies(warnings)
 
-  report = generate_report(combined_values, combined_major_errors, combined_errors,
-                           report_line_on_M0, M0_TR, global_pattern,
-                           total_acquired_pairs=total_acquired_pairs,
-                           slice_number=nifti_slice_number)
-  save_report(report, config['paths']['final_report'])
+  M0_TR, report_line_on_M0 = determine_m0_tr_and_report(m0_prep_times_collection, all_absent,
+                                                        bs_all_off, errors, m0_type=m0_type,
+                                                        inconsistent_params=m0_concise_error_params)
 
-  return {
+  asl_report, asl_parameters = generate_asl_report(combined_values, combined_major_errors,
+                                                   combined_errors, global_pattern, m0_type,
+                                                   total_acquired_pairs=total_acquired_pairs,
+                                                   slice_number=nifti_slice_number)
+  m0_parameters = []
+  m0_parameters.append(("M0 Type", m0_type))
+  if M0_TR:
+    m0_parameters.append(("M0 TR", M0_TR))
+  m0_report = generate_m0_report(report_line_on_M0, M0_TR)
+  basic_report = asl_report + m0_report
+  save_report(basic_report, config['paths']['basic_report'])
+
+  extended_report, extended_parameters = generate_extended_report(combined_values,
+                                                                  combined_major_errors,
+                                                                  combined_errors)
+  extended_report = asl_report + extended_report + m0_report
+  save_report(extended_report, config['paths']['extended_report'])
+
+  asl_parameters = [(key, "True" if isinstance(value, bool) and value else value) for key, value in
+                   asl_parameters]
+  extended_parameters = [(key, "True" if isinstance(value, bool) and value else value) for key, value in
+                    extended_parameters]
+  result = {
     "major_errors": combined_major_errors,
     "major_errors_concise": combined_major_errors_concise,
     "errors": combined_errors,
     "errors_concise": combined_errors_concise,
     "warnings": combined_warnings,
     "warnings_concise": combined_warnings_concise,
-    "report": report,
+    "basic_report": basic_report,
+    "extended_report": extended_report,
     "nifti_slice_number": nifti_slice_number,
     "major_errors_concise_text": major_errors_concise_text,
     "errors_concise_text": errors_concise_text,
@@ -413,13 +430,23 @@ def handle_upload(request):
     "inconsistencies": "".join(inconsistency_errors),
     "major_inconsistencies": "".join(major_inconsistency_errors),
     "warning_inconsistencies": "".join(warning_inconsistency_errors),
-    "m0_concise_error": "".join(m0_concise_error),
-    "m0_concise_warning": "".join(m0_concise_warning),
-  }, 200
+    "m0_concise_error": "\n".join(m0_concise_error),
+    "m0_concise_warning": "\n".join(m0_concise_warning),
+    "asl_parameters": asl_parameters,
+    "m0_parameters": m0_parameters,
+    "extended_parameters": extended_parameters
+  }
+
+  # Save the result dictionary as a JSON file
+  #with open(config['paths']['json_report'], 'w') as json_file:
+  #  json.dump(result, json_file, indent=2)
+
+  return result, 200
 
 
 def condense_and_reformat_discrepancies(error_list):
   condensed_errors = {}
+  param_names = []
 
   for error in error_list:
     if "Discrepancy in '" in error:
@@ -434,12 +461,14 @@ def condense_and_reformat_discrepancies(error_list):
       # If the parameter is already in the dictionary, skip adding it again
       if param_name not in condensed_errors:
         condensed_errors[param_name] = reformatted_error
+        # Collect the param_name
+        param_names.append(param_name)
     else:
       # If the message doesn't contain "Discrepancy", add it as is
       condensed_errors[error] = error
 
   # Convert the dictionary values back to a list
-  return list(condensed_errors.values())
+  return list(condensed_errors.values()), param_names
 
 
 def extract_concise_error(issue_dict):
@@ -581,12 +610,11 @@ def compare_params(params_asl, params_m0, asl_filename, m0_filename):
 
 
 def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off, discrepancies,
-                               m0_type):
+                               m0_type, inconsistent_params):
   M0_TR = None
   if m0_type == "Estimate":
     return M0_TR, "A single M0 scaling value is provided for CBF quantification"
   if m0_prep_times_collection and all(not item for item in m0_prep_times_collection):
-    print(m0_prep_times_collection)
     if all(abs(x - m0_prep_times_collection[0]) < 1e-5 for x in m0_prep_times_collection):
       M0_TR = m0_prep_times_collection[0]
     else:
@@ -600,7 +628,8 @@ def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off,
     if not discrepancies:
       report_line_on_M0 = "M0 was acquired with the same readout and without background suppression."
     else:
-      report_line_on_M0 = "There is inconsistency in parameters between M0 and ASL scans."
+      inconsistent_params_str = ", ".join(inconsistent_params)
+      report_line_on_M0 = f"There is inconsistency in {inconsistent_params_str} between M0 and ASL scans."
 
   return M0_TR, report_line_on_M0
 

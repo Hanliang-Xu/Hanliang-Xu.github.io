@@ -1,0 +1,129 @@
+{
+  "major_errors": {},
+  "major_errors_concise": {},
+  "errors": {
+    "BackgroundSuppressionNumberPulses": [
+      "INCONSISTENCY: Values vary. Mode: 3, Median: 2.5, Range: (2, 3), 25-75 Percentile: (2.25, 2.75), Outliers: []"
+    ]
+  },
+  "errors_concise": {},
+  "warnings": {},
+  "warnings_concise": {},
+  "basic_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. Balanced PCASL labeling was applied with the following pulse parameters: average 0.8mT/m and maximum pulse gradient 6mT/m, with 0.6ms pulses applied at 1ms intervals, with 20 degree flip angle. M0 was acquired with the same readout and without background suppression.",
+  "nifti_slice_number": 24,
+  "major_errors_concise_text": "",
+  "errors_concise_text": "",
+  "warnings_concise_text": "",
+  "inconsistencies": "BackgroundSuppressionNumberPulses: Values vary. The range is (2, 3).\n",
+  "major_inconsistencies": "",
+  "warning_inconsistencies": "",
+  "m0_concise_error": "",
+  "m0_concise_warning": "",
+  "asl_parameters": [
+    [
+      "Magnetic Field Strength",
+      "3T"
+    ],
+    [
+      "Manufacturer",
+      "Siemens"
+    ],
+    [
+      "Manufacturer's Model Name",
+      "TrioTim"
+    ],
+    [
+      "PLD Type",
+      "multi-PLD"
+    ],
+    [
+      "ASL Type",
+      "PCASL"
+    ],
+    [
+      "MR Acquisition Type",
+      "2D"
+    ],
+    [
+      "Pulse Sequence Type",
+      "EPI"
+    ],
+    [
+      "Echo Time",
+      "14ms"
+    ],
+    [
+      "Repetition Time",
+      "4050ms"
+    ],
+    [
+      "Flip Angle",
+      90
+    ],
+    [
+      "In-plane Resolution",
+      "3.4375x3.4375mm2"
+    ],
+    [
+      "Slice Thickness",
+      "4.05mm"
+    ],
+    [
+      "Labeling Duration",
+      1400
+    ],
+    [
+      "PLD",
+      "250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats)"
+    ],
+    [
+      "Background Suppression",
+      "with"
+    ],
+    [
+      "Background Suppression Number of Pulses",
+      "(inconsistent, no common data, Range: 2-3)"
+    ],
+    [
+      "Background Suppression Pulse Time",
+      "1428ms and 1604ms"
+    ],
+    [
+      "Total Acquired Pairs",
+      48
+    ]
+  ],
+  "m0_parameters": [
+    [
+      "M0 Type",
+      "Separate"
+    ]
+  ],
+  "extended_parameters": [
+    [
+      "PCASL Type",
+      "balanced"
+    ],
+    [
+      "Labeling Pulse Average Gradient",
+      "0.8mT/m"
+    ],
+    [
+      "Labeling Pulse Maximum Gradient",
+      "6mT/m"
+    ],
+    [
+      "Labeling Pulse Duration",
+      "0.6ms"
+    ],
+    [
+      "Labeling Pulse Interval",
+      "1ms"
+    ],
+    [
+      "Labeling Pulse Flip Angle",
+      20
+    ]
+  ]
+}

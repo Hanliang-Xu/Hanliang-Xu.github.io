@@ -32,7 +32,7 @@ def client(app):
 
 def load_test_case(test_case_folder):
   # Load the input files
-  files_folder = os.path.join(test_case_folder, 'files')
+  files_folder = os.path.join(test_case_folder, 'perf')
   data = load_test_files(files_folder)
 
   # Load the expected response
@@ -67,29 +67,23 @@ def load_test_files(folder_path):
 
 def find_relevant_files(folder_path):
   relevant_files = []
-  folder_items = os.listdir(folder_path)
 
-  for item in folder_items:
-    if item.endswith('_asl.json'):
-      relevant_files.append(item)
-      base_name = item.replace('_asl.json', '')
+  # Step 1: Find all files ending with '_asl.json'
+  asl_files = [item for item in os.listdir(folder_path) if item.endswith('_asl.json')]
 
-      m0scan_file = next((f for f in folder_items if f == f"{base_name}_m0scan.json"), None)
-      aslcontext_file = next((f for f in folder_items if f == f"{base_name}_aslcontext.tsv"), None)
+  # Step 2: For each found '_asl.json' file, find and add relevant files with the same base name
+  for asl_file in asl_files:
+    relevant_files.append(asl_file)
+    base_name = asl_file.replace('_asl.json', '')
 
-      if m0scan_file:
-        relevant_files.append(m0scan_file)
-      if aslcontext_file:
-        relevant_files.append(aslcontext_file)
+    m0scan_file = f"{base_name}_m0scan.json"
+    aslcontext_file = f"{base_name}_aslcontext.tsv"
 
-      if not (m0scan_file or aslcontext_file):
-        m0scan_file = 'm0scan.json' if 'm0scan.json' in folder_items else None
-        aslcontext_file = 'aslcontext.tsv' if 'aslcontext.tsv' in folder_items else None
-
-        if m0scan_file:
-          relevant_files.append(m0scan_file)
-        if aslcontext_file:
-          relevant_files.append(aslcontext_file)
+    # Check if these files exist in the folder and add them to the list
+    if m0scan_file in os.listdir(folder_path):
+      relevant_files.append(m0scan_file)
+    if aslcontext_file in os.listdir(folder_path):
+      relevant_files.append(aslcontext_file)
 
   return relevant_files
 
@@ -104,8 +98,24 @@ def find_nii_file(folder_path):
 
 ### Step 3: **Parametrize the Test Cases**
 @pytest.mark.parametrize("test_case_folder", [
-  'test_case_1',
-  'test_case_2',
+  'PCASL_with_BS_time',
+  'PASL_1',
+  'PCASL_no_BS_time',
+  'flip_angle_differ_by_more_than_1',
+  'inconsistent_vascular_crushing',
+  'vascular_crushing_VENC_test',
+  'inconsistent_but_with_common_data',
+  'multi_pld_differ_in_length',
+  'multi_pld_differ_in_value',
+  'string_difference',
+  'number_of_pulse_difference_range',
+  'extended_report_test_1',
+  'extended_report_test_2',
+  'extended_report_test_3',
+  'warning_Echo_Time_0.1ms',
+  'warning_voxel_size',
+  'major_error_pcasl_3d',
+  'm0_without_error_separate'
 ])
 def test_handle_upload_cases(client, app, test_case_folder):
   # Path to the test case folder

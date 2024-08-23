@@ -10,7 +10,9 @@ paths:
   major_error_report: '/tmp/major_error_report.json'
   error_report: '/tmp/error_report.json'
   warning_report: '/tmp/warning_report.json'
-  final_report: '/tmp/report.txt'
+  basic_report: '/tmp/basic_report.txt'
+  extended_report: '/tmp/extended_report.txt'
+  json_report: "backend/tests/test_data/expected_response.json"
 
 # Allowed file types
 allowed_file_types:
@@ -54,7 +56,6 @@ schemas:
     LabelingDuration:
       type: "NumberOrNumberArrayValidator"
       aliases: "NumRFBlocks"
-
     PostLabelingDelay:
       type: "NumberOrNumberArrayValidator"
       aliases: ["InversionTime"]
@@ -117,6 +118,8 @@ schemas:
       min_error: 0
     LabelingLocationDescription:
       type: "StringValidator"
+    VascularCrushing:
+      type: "BooleanValidator"
     VascularCrushingVENC:
       type: "NumberOrNumberArrayValidator"
       min_error_include: 0
@@ -163,6 +166,7 @@ schemas:
       BackgroundSuppression:
         True
     LabelingLocationDescription: "all"
+    VascularCrushing: "all"
     VascularCrushingVENC:
       VascularCrushing:
         True
@@ -175,22 +179,22 @@ schemas:
     LabelingDistance: "all"
     LabelingPulseAverageGradient:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     LabelingPulseMaximumGradient:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     LabelingPulseAverageB1:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     LabelingPulseFlipAngle:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     LabelingPulseInterval:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     LabelingPulseDuration:
       ArterialSpinLabelingType:
-        ["PCASL", "CASL"]
+        ["PCASL"]
     PASLType:
       ArterialSpinLabelingType:
         "PASL"
@@ -222,60 +226,75 @@ schemas:
       validation_type: "floatOrArray"
       error_variation: 0.1
       warning_variation: 0.0001
+      is_major: false
     RepetitionTimePreparation:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 10
       warning_variation: 0.1
       aliases: ["RepetitionTime"]
+      is_major: false
     LabelingDuration:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 10
       warning_variation: 0.1
       aliases: ["NumRFBlocks"]
+      is_major: false
     BackgroundSuppression:
       type: "ConsistencyValidator"
       validation_type: "boolean"
+      is_major: false
     AcquisitionVoxelSize:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 0.1
       warning_variation: 0.001
+      is_major: false
     FlipAngle:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 1
       warning_variation: 0.01
+      is_major: false
     PostLabelingDelay:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
       error_variation: 10
       warning_variation: 0.01
+      is_major: false
     BolusCutOffFlag:
       type: "ConsistencyValidator"
       validation_type: "boolean"
+      is_major: false
     BolusCutOffTechnique:
       type: "ConsistencyValidator"
       validation_type: "string"
+      is_major: false
     BolusCutOffDelayTime:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     BackgroundSuppressionNumberPulses:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     BackgroundSuppressionPulseTime:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     TotalAcquiredPairs:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     AcquisitionDuration:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     MagneticFieldStrength:
       type: "ConsistencyValidator"
       validation_type: "floatOrArray"
+      is_major: false
     Manufacturer:
       type: "ConsistencyValidator"
       validation_type: "string"
@@ -283,4 +302,48 @@ schemas:
     M0Type:
       type: "ConsistencyValidator"
       validation_type: "string"
+      is_major: false
+    VascularCrushing:
+      type: "ConsistencyValidator"
+      validation_type: "boolean"
+      is_major: false
+    VascularCrushingVENC:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    PCASLType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: false
+    LabelingPulseAverageGradient:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    LabelingPulseMaximumGradient:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    LabelingPulseAverageB1:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    LabelingPulseFlipAngle:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    LabelingPulseInterval:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    LabelingPulseDuration:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
+      is_major: false
+    PASLType:
+      type: "ConsistencyValidator"
+      validation_type: "string"
+      is_major: false
+    LabelingSlabThickness:
+      type: "ConsistencyValidator"
+      validation_type: "floatOrArray"
       is_major: false

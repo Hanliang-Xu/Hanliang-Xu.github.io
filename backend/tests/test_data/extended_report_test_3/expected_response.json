@@ -1,0 +1,121 @@
+{
+  "major_errors": {},
+  "major_errors_concise": {},
+  "errors": {
+    "m0_error": [
+      [
+        "Error: M0 type specified as 'Included' for 'sub-Sub103_asl.json', but 'sub-Sub103_m0scan.json' is present",
+        "Discrepancy in 'MRAcquisitionType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = 2D, M0 value = 3D",
+        "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EPI, M0 value = 3Dgrase"
+      ]
+    ]
+  },
+  "errors_concise": {},
+  "warnings": {},
+  "warnings_concise": {},
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4100ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 28 slices with 4.5mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression. In total, 8 control-label pairs were acquired. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4100ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 28 slices with 4.5mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average 0.8mT/m and maximum pulse gradient 6mT/m, with 0.6ms pulses applied at 1.6ms intervals, with 20 degree flip angle. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "nifti_slice_number": 28,
+  "major_errors_concise_text": "",
+  "errors_concise_text": "",
+  "warnings_concise_text": "",
+  "inconsistencies": "",
+  "major_inconsistencies": "",
+  "warning_inconsistencies": "",
+  "m0_concise_error": "Error: M0 type specified as 'Included' for 'sub-Sub103_asl.json', but 'sub-Sub103_m0scan.json' is present\nMRAcquisitionType (M0): Discrepancy between ASL JSON and M0 JSON\nPulseSequenceType (M0): Discrepancy between ASL JSON and M0 JSON",
+  "m0_concise_warning": "",
+  "asl_parameters": [
+    [
+      "Magnetic Field Strength",
+      "3T"
+    ],
+    [
+      "Manufacturer",
+      "Siemens"
+    ],
+    [
+      "Manufacturer's Model Name",
+      "Prisma_fit"
+    ],
+    [
+      "PLD Type",
+      "multi-PLD"
+    ],
+    [
+      "ASL Type",
+      "PCASL"
+    ],
+    [
+      "MR Acquisition Type",
+      "2D"
+    ],
+    [
+      "Pulse Sequence Type",
+      "EPI"
+    ],
+    [
+      "Echo Time",
+      "14ms"
+    ],
+    [
+      "Repetition Time",
+      "4100ms"
+    ],
+    [
+      "Flip Angle",
+      90
+    ],
+    [
+      "In-plane Resolution",
+      "3.4375x3.4375mm2"
+    ],
+    [
+      "Slice Thickness",
+      "4.5mm"
+    ],
+    [
+      "Labeling Duration",
+      1400
+    ],
+    [
+      "PLD",
+      "250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats)"
+    ],
+    [
+      "Background Suppression",
+      "with"
+    ],
+    [
+      "Total Acquired Pairs",
+      8
+    ]
+  ],
+  "m0_parameters": [
+    [
+      "M0 Type",
+      "Included"
+    ]
+  ],
+  "extended_parameters": [
+    [
+      "Labeling Pulse Average Gradient",
+      "0.8mT/m"
+    ],
+    [
+      "Labeling Pulse Maximum Gradient",
+      "6mT/m"
+    ],
+    [
+      "Labeling Pulse Duration",
+      "0.6ms"
+    ],
+    [
+      "Labeling Pulse Interval",
+      "1.6ms"
+    ],
+    [
+      "Labeling Pulse Flip Angle",
+      20
+    ]
+  ]
+}

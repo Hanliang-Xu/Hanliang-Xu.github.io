@@ -1,0 +1,104 @@
+{
+  "major_errors": {},
+  "major_errors_concise": {},
+  "errors": {
+    "m0_error": [
+      [
+        "Discrepancy in 'MRAcquisitionType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = 2D, M0 value = 3D",
+        "Discrepancy in 'PulseSequenceType' for ASL file 'sub-Sub103_asl.json' and M0 file 'sub-Sub103_m0scan.json': ASL value = EPI, M0 value = 3Dgrase"
+      ]
+    ]
+  },
+  "errors_concise": {},
+  "warnings": {},
+  "warnings_concise": {},
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average pulse gradient 0.6mT/m. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "nifti_slice_number": 28,
+  "major_errors_concise_text": "",
+  "errors_concise_text": "",
+  "warnings_concise_text": "",
+  "inconsistencies": "",
+  "major_inconsistencies": "",
+  "warning_inconsistencies": "",
+  "m0_concise_error": "MRAcquisitionType (M0): Discrepancy between ASL JSON and M0 JSON\nPulseSequenceType (M0): Discrepancy between ASL JSON and M0 JSON",
+  "m0_concise_warning": "",
+  "asl_parameters": [
+    [
+      "Magnetic Field Strength",
+      "3T"
+    ],
+    [
+      "Manufacturer",
+      "Siemens"
+    ],
+    [
+      "Manufacturer's Model Name",
+      "Prisma_fit"
+    ],
+    [
+      "PLD Type",
+      "single-PLD"
+    ],
+    [
+      "ASL Type",
+      "PCASL"
+    ],
+    [
+      "MR Acquisition Type",
+      "2D"
+    ],
+    [
+      "Pulse Sequence Type",
+      "EPI"
+    ],
+    [
+      "Echo Time",
+      "14ms"
+    ],
+    [
+      "Repetition Time",
+      "2540ms"
+    ],
+    [
+      "Flip Angle",
+      90
+    ],
+    [
+      "In-plane Resolution",
+      "3x3mm2"
+    ],
+    [
+      "Slice Thickness",
+      "5mm"
+    ],
+    [
+      "Labeling Duration",
+      1508.8
+    ],
+    [
+      "PLD",
+      "200ms"
+    ],
+    [
+      "Background Suppression",
+      "without"
+    ],
+    [
+      "Total Acquired Pairs",
+      8
+    ]
+  ],
+  "m0_parameters": [
+    [
+      "M0 Type",
+      "Separate"
+    ]
+  ],
+  "extended_parameters": [
+    [
+      "Labeling Pulse Average Gradient",
+      "0.6mT/m"
+    ]
+  ]
+}

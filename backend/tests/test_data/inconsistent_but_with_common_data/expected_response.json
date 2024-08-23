@@ -1,0 +1,122 @@
+{
+  "major_errors": {},
+  "major_errors_concise": {},
+  "errors": {
+    "BackgroundSuppression": [
+      "INCONSISTENCY: 'False' (1): ['sub-Sub105_asl.json']; 'True' (2): ['sub-Sub104_asl.json', 'sub-Sub103_asl.json']"
+    ],
+    "AcquisitionVoxelSize": [
+      "INCONSISTENCY: Values in arrays vary more than allowed 0.1 at index 2. Values: [('sub-Sub105_asl.json', 4.5), ('sub-Sub104_asl.json', 4), ('sub-Sub103_asl.json', 4)]"
+    ],
+    "LabelingDuration": [
+      "INCONSISTENCY: Values vary more than allowed 10. Mode: 1800, Median: 1800, Range: (1800, 2800), 25-75 Percentile: (1800.0, 2300.0), Outliers: []"
+    ],
+    "PostLabelingDelay": [
+      "INCONSISTENCY: Values vary more than allowed 10. Mode: 2000, Median: 2000, Range: (2000, 8000), 25-75 Percentile: (2000.0, 5000.0), Outliers: []"
+    ],
+    "EchoTime": [
+      "INCONSISTENCY: Values vary more than allowed 0.1. Mode: 13.28, Median: 13.28, Range: (13.28, 50), 25-75 Percentile: (13.28, 31.64), Outliers: []"
+    ],
+    "RepetitionTimePreparation": [
+      "INCONSISTENCY: Values vary more than allowed 10. Mode: 4950, Median: 4950, Range: (4950, 5950), 25-75 Percentile: (4950.0, 5450.0), Outliers: []"
+    ],
+    "FlipAngle": [
+      "INCONSISTENCY: Values vary more than allowed 1. Mode: 130, Median: 130, Range: (130, 135), 25-75 Percentile: (130.0, 132.5), Outliers: []"
+    ]
+  },
+  "errors_concise": {},
+  "warnings": {},
+  "warnings_concise": {},
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "nifti_slice_number": 28,
+  "major_errors_concise_text": "",
+  "errors_concise_text": "",
+  "warnings_concise_text": "",
+  "inconsistencies": "BackgroundSuppression: 'False', 'True'\nAcquisitionVoxelSize: Values in arrays vary more than allowed 0.1 at index 2 (4-4.5).\nLabelingDuration: Values (1800, 2800) vary more than the allowed variation 10.\nPostLabelingDelay: Values (2000, 8000) vary more than the allowed variation 10.\nEchoTime: Values (13.28, 50) vary more than the allowed variation 0.1.\nRepetitionTimePreparation: Values (4950, 5950) vary more than the allowed variation 10.\nFlipAngle: Values (130, 135) vary more than the allowed variation 1.\n",
+  "major_inconsistencies": "",
+  "warning_inconsistencies": "",
+  "m0_concise_error": "",
+  "m0_concise_warning": "",
+  "asl_parameters": [
+    [
+      "Magnetic Field Strength",
+      "3T"
+    ],
+    [
+      "Manufacturer",
+      "Siemens"
+    ],
+    [
+      "Manufacturer's Model Name",
+      "Prisma_fit"
+    ],
+    [
+      "PLD Type",
+      "single-PLD"
+    ],
+    [
+      "ASL Type",
+      "PCASL"
+    ],
+    [
+      "MR Acquisition Type",
+      "3D"
+    ],
+    [
+      "Pulse Sequence Type",
+      "GRASE"
+    ],
+    [
+      "Echo Time",
+      "(inconsistent, 13.28 is the most common data)ms"
+    ],
+    [
+      "Repetition Time",
+      "(inconsistent, 4950ms is the most common)"
+    ],
+    [
+      "Flip Angle",
+      "(inconsistent, 130 is the most common data)"
+    ],
+    [
+      "In-plane Resolution",
+      "(inconsistent, 3.4x3.4 is the most common)mm2"
+    ],
+    [
+      "Slice Thickness",
+      "(inconsistent, 4 is the most common)mm"
+    ],
+    [
+      "Labeling Duration",
+      "(inconsistent, 1800 is the most common data)"
+    ],
+    [
+      "PLD",
+      "(inconsistent, 2000ms is the most common)"
+    ],
+    [
+      "Background Suppression",
+      "(inconsistent, with is the most common)"
+    ],
+    [
+      "Background Suppression Number of Pulses",
+      4
+    ],
+    [
+      "Background Suppression Pulse Time",
+      "2290ms, 2925ms, 3425ms, and 3705ms"
+    ],
+    [
+      "Total Acquired Pairs",
+      8
+    ]
+  ],
+  "m0_parameters": [
+    [
+      "M0 Type",
+      "Separate"
+    ]
+  ],
+  "extended_parameters": []
+}
