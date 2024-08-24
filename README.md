@@ -6,7 +6,7 @@ Publications\
 **GitHub**: github.com/Hanliang-Xu\
 **Organization**: Open Science Initiative for Perfusion Imaging (OSIPI)\
 **Mentors**: Jan Petr, David Thomas\
-**Duration**: Google Summer of Code 2024\
+**Duration**: Google Summer of Code 2024
 
 ## Project Overview
 **Goal of the Project**: The primary objective of this project is to create a tool that
@@ -34,7 +34,7 @@ scientific publications.\
 **Frontend Interface**: Designed and developed a frontend interface using React.js to allow users
 to upload their images and receive the generated output.\
 **Integration**: Successfully integrated the backend with the frontend of the Google Cloud Platform
-, enabling users to interact with the tool through a web interface.\
+, enabling users to interact with the tool through a web interface.
 ### Technical Details:
 **Backend**:\
 Developed scripts to extract ASL parameters from asl.json, m0.json, asl_context.tsv, .nii.gz as
@@ -67,14 +67,14 @@ Functional frontend interface for user interaction.\
 End-to-end integration allowing users to generate and download ASL parameters.\
 **In Progress**:\
 Finalizing documentation and addressing minor bugs.\
-Additional enhancements suggested by mentors and users.\
+Additional enhancements suggested by mentors and users.
 
 ## Future Work and What's Left to Do
 **Remaining Tasks**:\
 Complete documentation for future contributors.\
 **Future Plans**:\
 Polish the frontend design based on further user feedback.\
-Extend the backend to support additional imaging modalities (DCE) or parameters if needed.
+Extend the backend to support additional imaging modalities (DCE) or parameters if needed.\
 Implement dcm2niix docker.
 
 ## Lessons Learned
