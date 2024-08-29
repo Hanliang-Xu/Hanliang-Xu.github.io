@@ -5,6 +5,9 @@ from .validators import NumberValidator, StringValidator, BooleanValidator, Numb
   NumberOrNumberArrayValidator, ConsistencyValidator
 
 
+# Function to create validators from a schema definition.
+# The schema defines what kind of validation needs to be performed on different fields.
+# This function maps each field in the schema to a corresponding validator class.
 def create_validators_from_schema(schema):
   validator_classes = {
     'NumberValidator': NumberValidator,
@@ -84,6 +87,9 @@ def create_validators_from_schema(schema):
   return validators
 
 
+# Class to perform JSON validation based on various schemas.
+# This class ties together different types of validation checks (e.g., major errors, required fields)
+# and applies them to a given dataset according to the defined schemas.
 class JSONValidator:
   def __init__(self, major_error_schema, required_validator_schema, required_condition_schema,
                recommended_validator_schema, recommended_condition_schema, consistency_schema):
@@ -94,6 +100,8 @@ class JSONValidator:
     self.recommended_condition_schema = recommended_condition_schema
     self.consistency_schema = create_validators_from_schema(consistency_schema)
 
+  # Function to read a JSON file and return its contents as a dictionary.
+  # Handles errors that might occur during file reading and parsing.
   def read_json(self, file_path: str):
     try:
       with open(file_path, 'r') as file:
@@ -102,6 +110,8 @@ class JSONValidator:
     except Exception as e:
       return None, f"Error reading file: {str(e)}"
 
+  # Function to validate a list of data dictionaries against the provided schemas.
+  # Aggregates errors, warnings, and values across all data items.
   def validate(self, data_list, filenames):
     (combined_major_errors, combined_major_errors_concise, combined_errors, combined_errors_concise,
      combined_warnings, combined_warnings_concise, combined_values) = {}, {}, {}, {}, {}, {}, {}
@@ -125,6 +135,8 @@ class JSONValidator:
     return (combined_major_errors, combined_major_errors_concise, combined_errors,
             combined_errors_concise, combined_warnings, combined_warnings_concise, combined_values)
 
+  # Function to apply a given schema to the data and collect any errors, warnings, or validated values.
+  # The function checks each field in the schema, applies the appropriate validator, and aggregates results.
   def apply_schema(self, validator_schema, data_list, major_errors, major_errors_concise, errors,
                    errors_concise, warnings, warnings_concise, values, is_required=False,
                    is_major=False, condition_schema=None, filenames=None):
@@ -205,6 +217,8 @@ class JSONValidator:
         warnings_concise[field] = aggregated_warnings_concise
       values[field] = aggregated_values
 
+  # Function to determine whether validation should be applied to a given piece of data.
+  # The decision is based on the conditions specified in the schema.
   def should_apply_validation(self, data, condition):
     if condition == "all":
       return True

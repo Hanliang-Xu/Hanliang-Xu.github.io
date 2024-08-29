@@ -1,6 +1,8 @@
 from collections import Counter
 
 
+# Function to generate the ASL report based on the provided values and error data.
+# The function constructs a detailed text report and also extracts key parameters for further use.
 def generate_asl_report(values, combined_major_errors, combined_errors, global_pattern, m0_type,
                         total_acquired_pairs, slice_number):
   report_lines = []
@@ -138,7 +140,8 @@ def generate_asl_report(values, combined_major_errors, combined_errors, global_p
       report_lines.append(
         f" at {format_background_suppression(background_suppression_pulse_time)} after the start of labeling")
       asl_parameters.append(
-        ("Background Suppression Pulse Time", format_background_suppression(background_suppression_pulse_time)))
+        ("Background Suppression Pulse Time",
+         format_background_suppression(background_suppression_pulse_time)))
     report_lines.append(".")
 
   if total_acquired_pairs == 1:
@@ -161,6 +164,8 @@ def generate_asl_report(values, combined_major_errors, combined_errors, global_p
   return report_paragraph, asl_parameters
 
 
+# Function to generate a report for M0 scans based on provided parameters.
+# This adds details about M0 scans and their TR (repetition time).
 def generate_m0_report(report_line_on_M0, M0_TR):
   report_lines = []
   if report_line_on_M0:
@@ -171,6 +176,8 @@ def generate_m0_report(report_line_on_M0, M0_TR):
   return report_paragraph
 
 
+# Function to generate an extended report that includes additional technical details
+# about the ASL acquisition, such as vascular crushing and labeling pulse parameters.
 def generate_extended_report(values, combined_major_errors, combined_errors):
   report_lines = []
   extended_parameters = []
@@ -225,10 +232,12 @@ def generate_extended_report(values, combined_major_errors, combined_errors):
       report_lines.append(f"average pulse gradient {labeling_pulse_average_gradient}mT/m")
     else:
       report_lines.append(f"average {labeling_pulse_average_gradient}mT/m and ")
-    extended_parameters.append(("Labeling Pulse Average Gradient", f"{labeling_pulse_average_gradient}mT/m"))
+    extended_parameters.append(
+      ("Labeling Pulse Average Gradient", f"{labeling_pulse_average_gradient}mT/m"))
   if labeling_pulse_maximum_gradient:
     report_lines.append(f"maximum pulse gradient {labeling_pulse_maximum_gradient}mT/m")
-    extended_parameters.append(("Labeling Pulse Maximum Gradient", f"{labeling_pulse_maximum_gradient}mT/m"))
+    extended_parameters.append(
+      ("Labeling Pulse Maximum Gradient", f"{labeling_pulse_maximum_gradient}mT/m"))
   if ((labeling_pulse_average_gradient or labeling_pulse_maximum_gradient) and
       (labeling_pulse_duration or labeling_pulse_interval or labeling_pulse_average_B1
        or labeling_pulse_flip_angle)):
@@ -246,7 +255,8 @@ def generate_extended_report(values, combined_major_errors, combined_errors):
 
   if labeling_pulse_average_B1:
     report_lines.append(f"average B1-field strength {labeling_pulse_average_B1}mT")
-    extended_parameters.append(("Labeling Pulse Average B1-field Strength", f"{labeling_pulse_average_B1}mT"))
+    extended_parameters.append(
+      ("Labeling Pulse Average B1-field Strength", f"{labeling_pulse_average_B1}mT"))
   elif labeling_pulse_flip_angle:
     report_lines.append(f"with {labeling_pulse_flip_angle} degree flip angle")
     extended_parameters.append(("Labeling Pulse Flip Angle", labeling_pulse_flip_angle))
@@ -259,6 +269,8 @@ def generate_extended_report(values, combined_major_errors, combined_errors):
   return report_paragraph, extended_parameters
 
 
+# Function to extract a specific value from the provided values dictionary.
+# This function also handles inconsistencies and formats the value based on the context (e.g., reporting range, duration).
 def extract_value(values, key, combined_errors, report_range=False, format_duration=False,
                   recommneded=False):
   status, most_common_value, value_range = handle_inconsistency(values, key, combined_errors)
@@ -276,6 +288,8 @@ def extract_value(values, key, combined_errors, report_range=False, format_durat
     return f"(inconsistent, no common data, {value_range})" if report_range else "(inconsistent, no common data)"
 
 
+# Helper function to handle inconsistencies in the extracted values.
+# This function checks for inconsistencies across different sources and identifies the most common value or range.
 def handle_inconsistency(values, key, combined_errors):
   inconsistencies = [
     error for error in combined_errors.get(key, []) if "INCONSISTENCY" in error
@@ -316,6 +330,9 @@ def handle_inconsistency(values, key, combined_errors):
     return "consistent", value, value_range
 
 
+# Function to handle the extraction and consistency checking of the bolus cutoff technique.
+# This function examines the provided values for the specified key (bolus cutoff technique) and checks
+# whether the data is consistent across multiple sources.
 def handle_bolus_cutoff_technique(values, key, combined_errors):
   status, technique = handle_string_inconsistency(values, key, combined_errors)
   if status == "consistent":
@@ -326,6 +343,8 @@ def handle_bolus_cutoff_technique(values, key, combined_errors):
     return "(inconsistent, no common data)"
 
 
+# Helper function to manage inconsistencies in string values.
+# This function checks for common values across different sources and handles inconsistency cases.
 def handle_string_inconsistency(values, key, combined_errors):
   inconsistencies = [
     error for error in combined_errors.get(key, []) if "INCONSISTENCY" in error
@@ -344,6 +363,8 @@ def handle_string_inconsistency(values, key, combined_errors):
     return "consistent", str(first_value[0][1]) if first_value else 'N/A'
 
 
+# Helper function to handle voxel size extraction and format the results.
+# It accounts for inconsistencies in the voxel sizes and formats them appropriately for reporting.
 def handle_voxel_size(values, combined_errors):
   status, acquisition_voxel_size, _ = handle_inconsistency(values, 'AcquisitionVoxelSize',
                                                            combined_errors)
@@ -367,22 +388,15 @@ def handle_voxel_size(values, combined_errors):
   return voxel_size_1_2, voxel_size_3
 
 
+# Helper function to handle PLD (Post-Labeling Delay) values and format them for reporting.
+# The function manages cases where the PLD values are consistent or inconsistent across different sources.
 def handle_pld_values(values, combined_errors, key, global_pattern=False, m0_type=""):
   status, pld_values, _ = handle_inconsistency(values, key, combined_errors)
 
   def format_pld_array(pld_array):
     pld_counter = Counter(pld_array)
 
-    if m0_type == "Included":
-      # If the first element is zero, remove it from the array
-      if pld_array and pld_array[0] == 0:
-        pld_array = pld_array[1:]
-        pld_counter = Counter(pld_array)  # Recalculate the counter after removing the first element
-      formatted_pld = ', '.join(
-        [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
-         sorted(pld_counter.items())]
-      )
-    elif global_pattern != "deltam":
+    if global_pattern != "deltam":
       formatted_pld = ', '.join(
         [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
          sorted(pld_counter.items())]
@@ -422,6 +436,8 @@ def handle_pld_values(values, combined_errors, key, global_pattern=False, m0_typ
   return extended_pld_text
 
 
+# Helper function to handle bolus cutoff flag extraction and manage inconsistencies.
+# This function formats the bolus cutoff flag for reporting.
 def handle_bolus_cutoff_flag(values, key, combined_errors):
   status, flag = handle_boolean_inconsistency(values, key, combined_errors)
   if status == "consistent":
@@ -432,6 +448,8 @@ def handle_bolus_cutoff_flag(values, key, combined_errors):
     return "(inconsistent, no common data)"
 
 
+# Helper function to manage inconsistencies in boolean values.
+# It identifies the most common value or returns an indication of inconsistency.
 def handle_boolean_inconsistency(values, key, combined_errors):
   inconsistencies = [
     error for error in combined_errors.get(key, []) if "INCONSISTENCY" in error
@@ -450,6 +468,8 @@ def handle_boolean_inconsistency(values, key, combined_errors):
     return "consistent", bool(first_value[0][1]) if first_value else 'N/A'
 
 
+# Helper function to format bolus cutoff delay time.
+# It accounts for consistency or inconsistency in the values across different sources.
 def handle_bolus_cutoff_delay_time(values, combined_errors):
   status, bolus_cutoff_delay_time, _ = handle_inconsistency(values, 'BolusCutOffDelayTime',
                                                             combined_errors)
@@ -466,6 +486,8 @@ def handle_bolus_cutoff_delay_time(values, combined_errors):
     return "(inconsistent, no common data)"
 
 
+# Helper function to format background suppression timing information.
+# The function returns the formatted string based on the provided timing values.
 def format_background_suppression(values):
   if not values:
     return ''
@@ -482,6 +504,8 @@ def format_background_suppression(values):
     return values
 
 
+# Helper function to format acquisition duration.
+# Converts duration in seconds to a human-readable format (e.g., minutes and seconds).
 def format_acquisition_duration(duration):
   if isinstance(duration, (int, float)):
     minutes = int(duration // 60)
@@ -490,6 +514,8 @@ def format_acquisition_duration(duration):
   return 'N/A'
 
 
+# Helper function to extract and format unique string values for reporting.
+# Combines all unique values into a single string, separated by slashes.
 def extract_and_format_unique_string_values(values, key):
   key_values = [entry[1] for entry in values.get(key, [])]
   normalized_values = [str(val) for val in key_values]
@@ -499,11 +525,14 @@ def extract_and_format_unique_string_values(values, key):
   return formatted_values
 
 
+# Helper function to extract unique values from an array and format them as a comma-separated string.
 def extract_unique_values_from_array(values):
   unique_values = sorted(set(values))
   return ', '.join(map(str, unique_values))
 
 
+# Function to extract inconsistencies from the error map and clean up the error dictionary.
+# This helps isolate specific inconsistency issues for better reporting.
 def extract_inconsistencies(error_map):
   inconsistency_errors = []
   fields_to_remove = []

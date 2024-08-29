@@ -4,6 +4,9 @@ import nibabel as nib
 from werkzeug.datastructures import FileStorage
 
 
+# Function to read a NIfTI file, either from an uploaded file or from a file path.
+# The function validates the file type, saves it if necessary, and loads the image
+# to return the number of slices in the third dimension (typically the Z-axis).
 def read_nifti_file(nifti_file, upload_folder):
   try:
     if isinstance(nifti_file, FileStorage):

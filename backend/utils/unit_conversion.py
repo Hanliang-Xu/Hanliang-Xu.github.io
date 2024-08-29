@@ -1,6 +1,10 @@
 SECOND_TO_MILLISECOND = 1000
 
 
+# Function to convert time values from seconds to milliseconds.
+# This utility function takes a single value or a list of values, converts them from seconds to milliseconds,
+# and rounds the result to an integer if it is close enough to an integer value (within a small tolerance).
+# The function handles both individual numeric values (int or float) and lists of such values.
 def convert_to_milliseconds(values):
   """Utility function to convert seconds to milliseconds and round close values to integers."""
 

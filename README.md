@@ -33,8 +33,8 @@ and BIDS files. This involved reading the image files (asl.json, m0.json, asl_co
 scientific publications.\
 **Frontend Interface**: Designed and developed a frontend interface using React.js to allow users
 to upload their images and receive the generated output.\
-**Integration**: Successfully integrated the backend with the frontend of the Google Cloud Platform
-, enabling users to interact with the tool through a web interface.
+**Integration**: Successfully integrated the backend with the frontend of the Google Cloud Platform,
+enabling users to interact with the tool through a web interface.
 ### Technical Details:
 **Backend**:\
 Developed scripts to extract ASL parameters from asl.json, m0.json, asl_context.tsv, .nii.gz as

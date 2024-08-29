@@ -20,6 +20,8 @@ from .unit_conversion import convert_to_milliseconds
 DURATION_OF_EACH_RFBLOCK = 0.0184
 
 
+# Function to validate JSON arrays against predefined schemas.
+# This ensures that the provided data meets the required format and consistency checks.
 def validate_json_arrays(data, filenames):
   config = current_app.config
 
@@ -41,6 +43,8 @@ def validate_json_arrays(data, filenames):
   return major_errors, major_errors_concise, errors, errors_concise, warnings, warnings_concise, values
 
 
+# Function to determine if the PLD type (Post-Labeling Delay) is single or multi-PLD
+# based on the uniqueness of certain timing parameters in the session data.
 def determine_pld_type(session):
   # Check if any of the specified keys contain arrays with different unique values
   for key in ['PostLabelingDelay', 'EchoTime', 'LabelingDuration']:
@@ -51,6 +55,8 @@ def determine_pld_type(session):
   return "single-PLD"
 
 
+# Function to analyze the pattern of volume types (e.g., control, label, deltam) in a sequence.
+# Determines the pattern (e.g., control-label) and counts the number of valid pairs.
 def analyze_volume_types(volume_types):
   first_non_m0type = next((vt for vt in volume_types if vt in {'control', 'label', 'deltam'}), None)
   pattern = "pattern error"
@@ -83,6 +89,9 @@ def analyze_volume_types(volume_types):
     return pattern, label_control_pairs
 
 
+# Function to convert a set of DICOM files to NIfTI format using the dcm2niix tool.
+# This involves reading DICOM files, processing series information, running the conversion tool,
+# and handling the output files, including associating repetition information with the output.
 def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
   converted_files = []
   converted_filenames = []
@@ -166,6 +175,9 @@ def convert_dcm_to_nifti(dcm_files, upload_folder, nifti_file):
   return converted_files, converted_filenames, nifti_file_assigned, "dicom", None
 
 
+# Function to handle file uploads in a Flask request.
+# It processes uploaded files, handles DICOM to NIfTI conversion if needed,
+# groups the files, and generates reports based on the processed data.
 def handle_upload(request):
   config = current_app.config
 
@@ -411,9 +423,10 @@ def handle_upload(request):
   save_report(extended_report, config['paths']['extended_report'])
 
   asl_parameters = [(key, "True" if isinstance(value, bool) and value else value) for key, value in
-                   asl_parameters]
-  extended_parameters = [(key, "True" if isinstance(value, bool) and value else value) for key, value in
-                    extended_parameters]
+                    asl_parameters]
+  extended_parameters = [(key, "True" if isinstance(value, bool) and value else value) for
+                         key, value in
+                         extended_parameters]
   result = {
     "major_errors": combined_major_errors,
     "major_errors_concise": combined_major_errors_concise,
@@ -438,12 +451,14 @@ def handle_upload(request):
   }
 
   # Save the result dictionary as a JSON file
-  #with open(config['paths']['json_report'], 'w') as json_file:
+  # with open(config['paths']['json_report'], 'w') as json_file:
   #  json.dump(result, json_file, indent=2)
 
   return result, 200
 
 
+# Function to condense and reformat discrepancies between ASL and M0 parameters.
+# This helps in generating a concise error report.
 def condense_and_reformat_discrepancies(error_list):
   condensed_errors = {}
   param_names = []
@@ -471,6 +486,8 @@ def condense_and_reformat_discrepancies(error_list):
   return list(condensed_errors.values()), param_names
 
 
+# Function to extract concise error messages from detailed error dictionaries.
+# This reformats the errors to be more human-readable and suited for a summary report.
 def extract_concise_error(issue_dict):
   report = []
 
@@ -487,13 +504,16 @@ def extract_concise_error(issue_dict):
   return '\n'.join(report)
 
 
-# Function to ensure keys exist and append values if they exist
+# Helper function to ensure that certain keys exist in a dictionary and append values to them if they do.
+# This is used for error and warning accumulation.
 def ensure_keys_and_append(dictionary, key, value):
   if value and key not in dictionary:
     dictionary[key] = []
     dictionary[key].append(value)
 
 
+# Function to group uploaded files by their type (ASL JSON, M0 JSON, TSV) and associate them.
+# This helps in organizing the files for further processing.
 def group_files(files, filenames, upload_dir, file_format):
   grouped_files = []
   current_group = {'asl_json': None, 'm0_json': None, 'tsv': None}
@@ -524,6 +544,8 @@ def group_files(files, filenames, upload_dir, file_format):
   return grouped_files, None
 
 
+# Function to read a file (either JSON or TSV) and return its content.
+# This function also handles file type checks and error handling.
 def read_file(file_path):
   try:
     # Determine if the input is a FileStorage object or a file path
@@ -562,6 +584,8 @@ def read_file(file_path):
     return None, f"Error reading file: {str(e)}"
 
 
+# Function to extract relevant parameters from ASL and M0 JSON data.
+# This is used for comparing these parameters across files.
 def extract_params(data):
   return {
     "EchoTime": data.get("EchoTime"),
@@ -572,6 +596,8 @@ def extract_params(data):
   }
 
 
+# Function to compare parameters between ASL and M0 data, generating errors or warnings if discrepancies are found.
+# The function compares both string-based and floating-point parameters.
 def compare_params(params_asl, params_m0, asl_filename, m0_filename):
   config = current_app.config
   consistency_schema = config['schemas']['consistency_schema']
@@ -609,6 +635,8 @@ def compare_params(params_asl, params_m0, asl_filename, m0_filename):
   return errors, warnings
 
 
+# Function to determine M0 Repetition Time (TR) and generate an M0 report line based on various conditions.
+# This helps in summarizing the status of M0 scans in the final report.
 def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off, discrepancies,
                                m0_type, inconsistent_params):
   M0_TR = None
@@ -634,16 +662,22 @@ def determine_m0_tr_and_report(m0_prep_times_collection, all_absent, bs_all_off,
   return M0_TR, report_line_on_M0
 
 
+# Function to save a dictionary as a JSON file.
+# This is used to save error reports, warnings, and other processed data in JSON format.
 def save_json(data, filepath):
   with open(filepath, 'w') as file:
     json.dump(data, file, indent=2)
 
 
+# Function to save a text report to a file.
+# This is used for saving basic and extended reports generated by the application.
 def save_report(report, filepath):
   with open(filepath, 'w') as file:
     file.write(report)
 
 
+# Function to extract inconsistencies from error reports and remove them from the error map.
+# This helps in isolating specific inconsistency issues for better reporting.
 def extract_inconsistencies(error_map):
   inconsistency_errors = []
   fields_to_remove = []

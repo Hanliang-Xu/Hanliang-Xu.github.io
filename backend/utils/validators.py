@@ -5,21 +5,29 @@ import numpy as np
 
 
 class BaseValidator:
+  """
+  Base class for all validators. Manages rules for major errors, errors, and warnings.
+  """
+
   def __init__(self):
     self.major_error_rules = []
     self.error_rules = []
     self.warning_rules = []
 
   def add_major_error_rule(self, func, major_error_msg):
+    """Adds a major error rule with a corresponding message."""
     self.major_error_rules.append((func, major_error_msg))
 
   def add_error_rule(self, func, error_msg):
+    """Adds an error rule with a corresponding message."""
     self.error_rules.append((func, error_msg))
 
   def add_warning_rule(self, func, warning_msg):
+    """Adds a warning rule with a corresponding message."""
     self.warning_rules.append((func, warning_msg))
 
   def validate(self, value):
+    """Validates the value against the rules, returning the appropriate error or warning."""
     for func, major_error_msg in self.major_error_rules:
       if not func(value):
         return major_error_msg, major_error_msg, None, None, None, None
@@ -33,6 +41,10 @@ class BaseValidator:
 
 
 class NumberValidator(BaseValidator):
+  """
+  Validator for numerical values. Supports validation of ranges, integer enforcement, and warnings.
+  """
+
   def __init__(self, min_error=None, max_error=None, min_warning=None, max_warning=None,
                min_error_include=None, max_error_include=None, enforce_integer=False):
     super().__init__()
@@ -55,6 +67,10 @@ class NumberValidator(BaseValidator):
 
 
 class StringValidator(BaseValidator):
+  """
+  Validator for string values. Validates against a list of allowed values, with optional major error enforcement.
+  """
+
   def __init__(self, allowed_values=None, major_error=False):
     super().__init__()
     # Convert allowed_values to lower case for case-insensitive comparison
@@ -69,6 +85,10 @@ class StringValidator(BaseValidator):
 
 
 class NumberArrayValidator(BaseValidator):
+  """
+  Validator for arrays of numerical values. Supports size checks, range validation, and ascending order checks.
+  """
+
   def __init__(self, size_error=None, min_error=None, max_error=None, min_warning=None,
                max_warning=None, min_error_include=None, check_ascending=False):
     super().__init__()
@@ -107,6 +127,10 @@ class NumberArrayValidator(BaseValidator):
 
 
 class NumberOrNumberArrayValidator(BaseValidator):
+  """
+  Validator for single numbers or arrays of numbers. Combines the functionality of NumberValidator and NumberArrayValidator.
+  """
+
   def __init__(self, size_error=None, min_error=None, max_error=None, min_warning=None,
                max_warning=None, min_error_include=None, check_ascending=False):
     super().__init__()
@@ -128,6 +152,9 @@ class NumberOrNumberArrayValidator(BaseValidator):
     )
 
   def validate(self, value):
+    """
+    Validates either a single number or an array of numbers, returning appropriate messages for errors or warnings.
+    """
     if isinstance(value, (int, float)):
       return self.number_validator.validate(value)
     elif isinstance(value, list):
@@ -137,13 +164,25 @@ class NumberOrNumberArrayValidator(BaseValidator):
 
 
 class BooleanValidator(BaseValidator):
+  """
+  Validator for boolean values. Ensures the value is either True or False.
+  """
+
   def __init__(self):
     super().__init__()
     self.add_error_rule(lambda x: isinstance(x, bool), "Value must be a boolean (True or False)")
 
 
 class ConsistencyValidator(BaseValidator):
+  """
+  Validates the consistency of values across multiple datasets.
+  Supports strings, booleans, floats, and arrays, with options for error and warning variations.
+  """
+
   def __init__(self, validation_type, is_major=False, error_variation=None, warning_variation=None):
+    """
+    Initializes the validator with specific rules for consistency checking.
+    """
     super().__init__()
     self.validation_type = validation_type
     self.is_major = is_major
@@ -151,9 +190,11 @@ class ConsistencyValidator(BaseValidator):
     self.warning_variation = warning_variation
 
   def validate(self, values_with_filenames):
+    """
+    Validates the provided values based on their type, returning error or warning messages for inconsistencies.
+    """
     values = [value for value, _ in values_with_filenames]
     filenames = [filename for _, filename in values_with_filenames]
-
     if self.validation_type == "string":
       if len(set(values)) > 1:
         counts = Counter(values)
@@ -304,6 +345,9 @@ class ConsistencyValidator(BaseValidator):
     return None, None, None, None, None, None
 
   def calculate_summary(self, values, filenames):
+    """
+    Generates a statistical summary of the dataset including mode, median, range, and identification of outliers.
+    """
     try:
       mode_value = mode(values)
     except:
