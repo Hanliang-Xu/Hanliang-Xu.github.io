@@ -35,9 +35,9 @@ function App() {
                     {/* Add padding to offset the fixed TopBar height */}
                     <div style={{ paddingTop: '5rem' }}>
                         <Routes>
-                            <Route path="/" element={<JSONUpload />} />
+                            <Route path="/json-upload" element={<JSONUpload />} />
                             <Route
-                                path="/json-upload"
+                                path="/"
                                 element={
                                     <div>
                                         <LandingPage />
