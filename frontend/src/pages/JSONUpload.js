@@ -314,7 +314,7 @@ function JSONUpload() {
             }}
         >
             <Typography variant="h4" gutterBottom>
-                Select a BIDS Folder to Generate a Parameter Report
+                OSIPI ASL Reporting Tool
             </Typography>
 
             <Box mt={4} p={2}
