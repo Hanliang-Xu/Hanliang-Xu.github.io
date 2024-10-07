@@ -371,7 +371,7 @@ function JSONUpload() {
                     <strong>Acknowledgments</strong>
                 </Typography>
                 <Typography variant="body1" mt={1}>
-                    This project has been developed under the mentorship and supervision of Jan Petr and David Thomas. Their guidance and support have been invaluable throughout the development process.
+                    This project has been developed under the mentorship and supervision of Jan Petr, David Thomas, and the OSIPI TF 4.1 ASL Lexicon. Their guidance and support have been invaluable throughout the development process.
                 </Typography>
             </Box>
 
