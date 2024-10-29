@@ -80,9 +80,9 @@ def generate_asl_report(values, combined_major_errors, combined_errors, global_p
   asl_parameters.append(("Flip Angle", flip_angle))
 
   report_lines.append(
-    f"in-plane resolution {voxel_size_1_2}mm2, "
+    f"in-plane resolution {voxel_size_1_2}mm^2, "
   )
-  asl_parameters.append(("In-plane Resolution", f"{voxel_size_1_2}mm2"))
+  asl_parameters.append(("In-plane Resolution", f"{voxel_size_1_2}mm^2"))
 
   report_lines.append(
     f"{slice_number} slices with {voxel_size_3}mm thickness, "
