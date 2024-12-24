@@ -397,7 +397,7 @@ function JSONUpload() {
                 'major_errors'
             )}
             {errorReport && renderReportSection(
-                "ERRORS (these are major shortcomings, you need to provide those)",
+                "ERRORS (major shortcomings which need to be addressed/acknowledged",
                 errorReport,
                 errorReportConcise,
                 errorReportConciseText,

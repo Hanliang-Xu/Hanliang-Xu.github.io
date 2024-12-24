@@ -398,7 +398,7 @@ def handle_pld_values(values, combined_errors, key, global_pattern=False, m0_typ
 
     if global_pattern != "deltam":
       formatted_pld = ', '.join(
-        [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
+        [f"{pld}ms ({count // 2} {'volume' if (count // 2) == 1 else 'volumes'})" for pld, count in
          sorted(pld_counter.items())]
       )
     else:
