@@ -145,13 +145,24 @@ def generate_asl_report(values, combined_major_errors, combined_errors, global_p
     report_lines.append(".")
 
   if total_acquired_pairs == 1:
+    if (global_pattern == "deltam"):
+      classifer = "volume"
+    else:
+      classifer = "pair"
+
     report_lines.append(
-      f" In total, {total_acquired_pairs} {global_pattern} pair was acquired"
+      f" In total, {total_acquired_pairs} {global_pattern} {classifer} was acquired"
     )
   else:
+    if (global_pattern == "deltam"):
+      classifer = "volumes"
+    else:
+      classifer = "pairs"
+
     report_lines.append(
-      f" In total, {total_acquired_pairs} {global_pattern} pairs were acquired"
+      f" In total, {total_acquired_pairs} {global_pattern} {classifer} were acquired"
     )
+
   asl_parameters.append(
     ("Total Acquired Pairs", total_acquired_pairs))
 
@@ -398,12 +409,12 @@ def handle_pld_values(values, combined_errors, key, global_pattern=False, m0_typ
 
     if global_pattern != "deltam":
       formatted_pld = ', '.join(
-        [f"{pld}ms ({count // 2} {'volume' if (count // 2) == 1 else 'volumes'})" for pld, count in
+        [f"{pld}ms ({count // 2} {'repeat' if (count // 2) == 1 else 'repeats'})" for pld, count in
          sorted(pld_counter.items())]
       )
     else:
       formatted_pld = ', '.join(
-        [f"{pld}ms ({count} {'repeat' if count == 1 else 'repeats'})" for pld, count in
+        [f"{pld}ms ({count} {'volume' if count == 1 else 'volumes'})" for pld, count in
          sorted(pld_counter.items())]
       )
     return formatted_pld
