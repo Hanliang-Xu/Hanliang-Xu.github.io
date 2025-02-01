@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import {createTheme, ThemeProvider} from '@mui/material';
 import About from './pages/About';
 import JSONUpload from './pages/JSONUpload';
 import LandingPage from './pages/LandingPage';
@@ -30,21 +30,23 @@ function App() {
         <Router>
             <ThemeProvider theme={theme}>
                 <div>
-                    <TopBar /> {/* Use the new component */}
+                    <TopBar/>
 
-                    {/* Add padding to offset the fixed TopBar height */}
-                    <div style={{ paddingTop: '5rem' }}>
+                    <div style={{paddingTop: '5rem'}}>
                         <Routes>
-                            <Route path="/json-upload" element={<JSONUpload />} />
+                            <Route path="/json-upload" element={<JSONUpload/>}/>
                             <Route
                                 path="/"
                                 element={
                                     <div>
-                                        <LandingPage />
-                                        <section id="about" style={{ padding: '100px 20px', marginBottom: '10px' }}>
-                                            <About />
+                                        <LandingPage/>
+                                        <section id="about" style={{
+                                            padding: '100px 20px',
+                                            marginBottom: '10px'
+                                        }}>
+                                            <About/>
                                         </section>
-                                        <ImageBar />
+                                        <ImageBar/>
                                     </div>
                                 }
                             />
