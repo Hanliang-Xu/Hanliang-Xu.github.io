@@ -326,8 +326,14 @@ function JSONUpload() {
                     checking for inconsistencies, invalid values, and providing warnings for slight
                     variations. Please ensure that your dataset is organized according to the BIDS
                     standard before uploading. Here are some sample folders for you to download and
-                    test:
-                    https://drive.google.com/drive/folders/1NuG_ofLbaLYswNlBN2aRDkxLOucYFQfg?usp=sharing
+                    test:{" "}
+                    <a 
+                        href="https://drive.google.com/drive/folders/1NuG_ofLbaLYswNlBN2aRDkxLOucYFQfg?usp=sharing" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        Google Drive Folder
+                    </a>.
                 </Typography>
                 <Typography variant="body1" mt={2}>
                     <strong>Steps:</strong>
