@@ -9,8 +9,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. M0 was acquired with the same readout and without background suppression.",
-  "extended_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. Balanced PCASL labeling was applied with the following pulse parameters: average 0.8mT/m and maximum pulse gradient 6mT/m, with 0.6ms pulses applied at 1ms intervals, with 20 degree flip angle. M0 was acquired with the same readout and without background suppression.",
+  "basic_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm^2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 4050ms, flip angle 90 degrees, in-plane resolution 3.4375x3.4375mm^2, 24 slices with 4.05mm thickness, labeling duration 1400ms, PLD 250ms (8 repeats), 500ms (8 repeats), 750ms (8 repeats), 1000ms (8 repeats), 1250ms (8 repeats), 1500ms (8 repeats), with background suppression with (inconsistent, no common data, Range: 2-3) pulses at 1428ms and 1604ms after the start of labeling. In total, 48 label-control pairs were acquired. Balanced PCASL labeling was applied with the following pulse parameters: average 0.8mT/m and maximum pulse gradient 6mT/m, with 0.6ms pulses applied at 1ms intervals, with 20 degree flip angle. M0 was acquired with the same readout and without background suppression.",
   "nifti_slice_number": 24,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -63,7 +63,7 @@
     ],
     [
       "In-plane Resolution",
-      "3.4375x3.4375mm2"
+      "3.4375x3.4375mm^2"
     ],
     [
       "Slice Thickness",

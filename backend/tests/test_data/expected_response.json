@@ -5,8 +5,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens Prisma scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 36.76ms, TR = 2000ms (0 repeats), 4500ms (8 repeats), flip angle 120 degrees, in-plane resolution 2x2mm2, 28 slices with 2mm thickness, labeling duration 1803.2ms, PLD 2000ms, with background suppression with 2 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
-  "extended_report": "ASL was acquired on a 3T Siemens Prisma scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 36.76ms, TR = 2000ms (0 repeats), 4500ms (8 repeats), flip angle 120 degrees, in-plane resolution 2x2mm2, 28 slices with 2mm thickness, labeling duration 1803.2ms, PLD 2000ms, with background suppression with 2 pulses. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average pulse gradient 0.6mT/m. M0 was acquired with the same readout and without background suppression.",
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 36.76ms, TR = 2000ms (0 repeats), 4500ms (8 repeats), flip angle 120 degrees, in-plane resolution 2x2mm^2, 28 slices with 2mm thickness, labeling duration 1803.2ms, PLD 2000ms, with background suppression with 2 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 36.76ms, TR = 2000ms (0 repeats), 4500ms (8 repeats), flip angle 120 degrees, in-plane resolution 2x2mm^2, 28 slices with 2mm thickness, labeling duration 1803.2ms, PLD 2000ms, with background suppression with 2 pulses. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average pulse gradient 0.6mT/m. M0 was acquired with the same readout and without background suppression.",
   "nifti_slice_number": 28,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -59,7 +59,7 @@
     ],
     [
       "In-plane Resolution",
-      "2x2mm2"
+      "2x2mm^2"
     ],
     [
       "Slice Thickness",

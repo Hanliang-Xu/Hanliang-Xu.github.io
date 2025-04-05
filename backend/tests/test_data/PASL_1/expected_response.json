@@ -11,8 +11,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD FAIR PASL labeling and a 3D GRASE readout with the following parameters: TE = 11.92ms, TR = 3500ms, flip angle 180 degrees, in-plane resolution 8x4mm2, 18 slices with 6mm thickness, inversion time 300ms (1 repeat), 600ms (1 repeat), 900ms (1 repeat), 1200ms (1 repeat), 1500ms (1 repeat), 1800ms (1 repeat), 2100ms (1 repeat), 2400ms (1 repeat), 2700ms (1 repeat), 3000ms (1 repeat), labeling slab thickness 115.5mm, with bolus saturation using Q2TIPS pulse applied from 700ms to 1600ms after the labeling, with background suppression with 2 pulses at 150ms and 200ms after the start of labeling. In total, 10 label-control pairs were acquired. There is inconsistency in EchoTime between M0 and ASL scans.",
-  "extended_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD FAIR PASL labeling and a 3D GRASE readout with the following parameters: TE = 11.92ms, TR = 3500ms, flip angle 180 degrees, in-plane resolution 8x4mm2, 18 slices with 6mm thickness, inversion time 300ms (1 repeat), 600ms (1 repeat), 900ms (1 repeat), 1200ms (1 repeat), 1500ms (1 repeat), 1800ms (1 repeat), 2100ms (1 repeat), 2400ms (1 repeat), 2700ms (1 repeat), 3000ms (1 repeat), labeling slab thickness 115.5mm, with bolus saturation using Q2TIPS pulse applied from 700ms to 1600ms after the labeling, with background suppression with 2 pulses at 150ms and 200ms after the start of labeling. In total, 10 label-control pairs were acquired. There is inconsistency in EchoTime between M0 and ASL scans.",
+  "basic_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD FAIR PASL labeling and a 3D GRASE readout with the following parameters: TE = 11.92ms, TR = 3500ms, flip angle 180 degrees, in-plane resolution 8x4mm^2, 18 slices with 6mm thickness, inversion time 300ms (1 repeat), 600ms (1 repeat), 900ms (1 repeat), 1200ms (1 repeat), 1500ms (1 repeat), 1800ms (1 repeat), 2100ms (1 repeat), 2400ms (1 repeat), 2700ms (1 repeat), 3000ms (1 repeat), labeling slab thickness 115.5mm, with bolus saturation using Q2TIPS pulse applied from 700ms to 1600ms after the labeling, with background suppression with 2 pulses at 150ms and 200ms after the start of labeling. In total, 10 label-control pairs were acquired. There is inconsistency in EchoTime between M0 and ASL scans.",
+  "extended_report": "ASL was acquired on a 3T Siemens TrioTim scanner using multi-PLD FAIR PASL labeling and a 3D GRASE readout with the following parameters: TE = 11.92ms, TR = 3500ms, flip angle 180 degrees, in-plane resolution 8x4mm^2, 18 slices with 6mm thickness, inversion time 300ms (1 repeat), 600ms (1 repeat), 900ms (1 repeat), 1200ms (1 repeat), 1500ms (1 repeat), 1800ms (1 repeat), 2100ms (1 repeat), 2400ms (1 repeat), 2700ms (1 repeat), 3000ms (1 repeat), labeling slab thickness 115.5mm, with bolus saturation using Q2TIPS pulse applied from 700ms to 1600ms after the labeling, with background suppression with 2 pulses at 150ms and 200ms after the start of labeling. In total, 10 label-control pairs were acquired. There is inconsistency in EchoTime between M0 and ASL scans.",
   "nifti_slice_number": 18,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -69,7 +69,7 @@
     ],
     [
       "In-plane Resolution",
-      "8x4mm2"
+      "8x4mm^2"
     ],
     [
       "Slice Thickness",

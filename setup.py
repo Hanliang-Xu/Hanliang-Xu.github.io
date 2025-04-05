@@ -13,7 +13,7 @@ setup(
     'itsdangerous==2.2.0',
     'Jinja2==3.1.4',
     'MarkupSafe==2.1.5',
-    'packaging==24.0',
+    'packaging==24.2',
     'Werkzeug==3.0.3'
   ],
   include_package_data=True,  # Include additional files specified in MANIFEST.in

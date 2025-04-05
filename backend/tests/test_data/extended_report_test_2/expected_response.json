@@ -12,8 +12,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
-  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average pulse gradient 0.6mT/m. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm^2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 2D EPI readout with the following parameters: TE = 14ms, TR = 2540ms, flip angle 90 degrees, in-plane resolution 3x3mm^2, 28 slices with 5mm thickness, labeling duration 1508.8ms, PLD 200ms, without background suppression. In total, 8 control-label pairs were acquired. PCASL labeling was applied with the following pulse parameters: average pulse gradient 0.6mT/m. There is inconsistency in MRAcquisitionType, PulseSequenceType between M0 and ASL scans.",
   "nifti_slice_number": 28,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -66,7 +66,7 @@
     ],
     [
       "In-plane Resolution",
-      "3x3mm2"
+      "3x3mm^2"
     ],
     [
       "Slice Thickness",

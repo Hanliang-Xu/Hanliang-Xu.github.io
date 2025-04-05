@@ -5,8 +5,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm2, 28 slices with 4mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
-  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm2, 28 slices with 4mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm^2, 28 slices with 4mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = 13.28ms, TR = 4950ms, flip angle 130 degrees, in-plane resolution 3.4x3.4mm^2, 28 slices with 4mm thickness, labeling duration 1800ms, PLD 2000ms, with background suppression with 4 pulses. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
   "nifti_slice_number": 28,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -59,7 +59,7 @@
     ],
     [
       "In-plane Resolution",
-      "3.4x3.4mm2"
+      "3.4x3.4mm^2"
     ],
     [
       "Slice Thickness",

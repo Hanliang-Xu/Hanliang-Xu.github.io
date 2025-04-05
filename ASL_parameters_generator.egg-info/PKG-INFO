@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: ASL-parameters-generator
 Version: 1.0.0
 Summary: Website for the user to upload ASL images formatted in BIDS setup and get a report of the study's parameter in return
@@ -17,5 +17,12 @@ Requires-Dist: gunicorn==22.0.0
 Requires-Dist: itsdangerous==2.2.0
 Requires-Dist: Jinja2==3.1.4
 Requires-Dist: MarkupSafe==2.1.5
-Requires-Dist: packaging==24.0
+Requires-Dist: packaging==24.2
 Requires-Dist: Werkzeug==3.0.3
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

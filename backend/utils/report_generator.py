@@ -405,7 +405,8 @@ def handle_pld_values(values, combined_errors, key, global_pattern=False, m0_typ
   status, pld_values, _ = handle_inconsistency(values, key, combined_errors)
 
   def format_pld_array(pld_array):
-    pld_counter = Counter(pld_array)
+    filtered_array = [pld for pld in pld_array if pld != 0]
+    pld_counter = Counter(filtered_array)
 
     if global_pattern != "deltam":
       formatted_pld = ', '.join(

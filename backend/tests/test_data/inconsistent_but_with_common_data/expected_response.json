@@ -27,8 +27,8 @@
   "errors_concise": {},
   "warnings": {},
   "warnings_concise": {},
-  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
-  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "basic_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm^2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
+  "extended_report": "ASL was acquired on a 3T Siemens Prisma_fit scanner using single-PLD PCASL labeling and a 3D GRASE readout with the following parameters: TE = (inconsistent, 13.28 is the most common data)ms, TR = (inconsistent, 4950ms is the most common), flip angle (inconsistent, 130 is the most common data) degrees, in-plane resolution (inconsistent, 3.4x3.4 is the most common)mm^2, 28 slices with (inconsistent, 4 is the most common)mm thickness, labeling duration (inconsistent, 1800 is the most common data)ms, PLD (inconsistent, 2000ms is the most common), (inconsistent, with is the most common) background suppression with 4 pulses at 2290ms, 2925ms, 3425ms, and 3705ms after the start of labeling. In total, 8 control-label pairs were acquired. M0 was acquired with the same readout and without background suppression.",
   "nifti_slice_number": 28,
   "major_errors_concise_text": "",
   "errors_concise_text": "",
@@ -81,7 +81,7 @@
     ],
     [
       "In-plane Resolution",
-      "(inconsistent, 3.4x3.4 is the most common)mm2"
+      "(inconsistent, 3.4x3.4 is the most common)mm^2"
     ],
     [
       "Slice Thickness",
