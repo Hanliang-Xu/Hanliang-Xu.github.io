@@ -1,11 +1,8 @@
-import React from 'react';
 import { HashRouter as Router, Route, Routes } from 'react-router-dom';
 import {createTheme, ThemeProvider} from '@mui/material';
 import About from './pages/About';
-import JSONUpload from './pages/JSONUpload';
 import LandingPage from './pages/LandingPage';
 import ImageBar from './pages/ImageBar';
-import TopBar from './components/TopBar';
 import './styles.css';
 
 const theme = createTheme({
@@ -34,7 +31,6 @@ function App() {
 
                     <div style={{paddingTop: '5rem'}}>
                         <Routes>
-                            <Route path="/json-upload" element={<JSONUpload/>}/>
                             <Route
                                 path="/"
                                 element={

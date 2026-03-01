@@ -90,7 +90,6 @@ const TopBar = () => {
                             }
                         }}
                     >
-                        <Tab label="JSON Upload" component={HashLink} smooth to="/json-upload" />
                     </Tabs>
                 </Box>
             </div>
