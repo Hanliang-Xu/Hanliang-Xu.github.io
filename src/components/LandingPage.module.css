@@ -1,0 +1,19 @@
+.root {
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--muted);
+}
