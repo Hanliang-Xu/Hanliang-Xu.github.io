@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className={styles.shell}>
             <header className={styles.topRow}>
               <div className={styles.left}>
-                <h1 className={styles.name}>Hanliang Xu (Leon)</h1>
+                <Link href="/" className={styles.nameLink}><h1 className={styles.name}>Hanliang Xu (Leon)</h1></Link>
                 <ThemeToggle />
               </div>
 

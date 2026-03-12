@@ -29,3 +29,12 @@
 .navLink:hover {
   color: var(--fg);
 }
+
+.nameLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.nameLink:hover {
+  opacity: 0.7;
+}
