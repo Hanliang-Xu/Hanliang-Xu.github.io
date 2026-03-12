@@ -3,12 +3,6 @@
   margin: 0 auto;
 }
 
-.header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 28px;
-}
-
 .topRow {
   display: flex;
   align-items: center;
